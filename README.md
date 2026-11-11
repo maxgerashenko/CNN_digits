@@ -9,8 +9,9 @@ A convolutional neural network (CNN) that recognizes handwritten digits (0 to 9)
    - the predicted digit and the probability for each of the 10 classes,
    - what each convolution layer "sees" (its feature maps),
    - the network architecture, layer by layer.
+3. **Let visitors retrain it** with their own settings (layers, filters, dropout, learning rate, epochs and more) and compare the new model with the saved one.
 
-The app will run the trained model in the visitor's browser with TensorFlow.js and be hosted for free on GitHub Pages. It isn't built yet; see [PLAN.md](PLAN.md).
+The page will be hosted for free on GitHub Pages and run the saved model in the visitor's browser with TensorFlow.js. Retraining runs on a free Hugging Face Space. It isn't built yet; see [PLAN.md](PLAN.md).
 
 ## Model
 
