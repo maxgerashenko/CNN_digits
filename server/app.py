@@ -67,11 +67,13 @@ class Backend:
         export: Callable | None = None,
         default_settings: dict | None = None,
         evaluate: Callable | None = None,
+        validate: Callable | None = None,
     ):
         self._train = train
         self._export = export
         self._defaults = default_settings
         self._evaluate = evaluate
+        self._validate = validate
         self._loaded = train is not None and export is not None
         self._lock = threading.Lock()
 
@@ -87,6 +89,8 @@ class Backend:
                 self._defaults = dict(model.DEFAULT_SETTINGS)
             if self._evaluate is None:
                 self._evaluate = getattr(model, "evaluate", None)
+            if self._validate is None:
+                self._validate = getattr(model, "validate_settings", None)
             self._loaded = True
 
     @property
@@ -101,6 +105,13 @@ class Backend:
     def export(self, model, out_dir: str) -> None:
         self.load()
         self._export(model, out_dir)
+
+    def validate(self, settings: dict) -> dict:
+        """Check the values with the training code's own check, if it has one."""
+        self.load()
+        if self._validate is None:
+            return settings
+        return dict(self._validate(settings) or settings)
 
     def evaluate(self, model) -> dict:
         self.load()
@@ -363,7 +374,10 @@ def create_app(backend: Backend | None = None) -> FastAPI:
             unknown = sorted(set(body) - set(defaults)) if defaults else []
             if unknown:
                 raise HTTPException(400, f"Unknown settings: {', '.join(unknown)}.")
-            settings = {**defaults, **body}
+            try:
+                settings = backend.validate({**defaults, **body})
+            except ValueError as exc:
+                raise HTTPException(400, f"{exc}")
 
         job = manager.submit(settings)
         return {
