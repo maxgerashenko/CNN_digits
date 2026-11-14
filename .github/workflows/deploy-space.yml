@@ -1,0 +1,52 @@
+# Copies the server/ folder to the Hugging Face Space when it changes on main.
+#
+# Setup (once, in the GitHub repo settings > Secrets and variables > Actions):
+#   - Secret   HF_TOKEN : a Hugging Face access token with write access to the Space
+#   - Variable HF_SPACE : the Space name, like  your-username/cnn-digits-trainer
+#
+# Until both exist, and until server/ holds a complete app, the run prints a
+# notice and finishes green without deploying anything.
+name: Deploy server to Hugging Face Space
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "server/**"
+      - ".github/workflows/deploy-space.yml"
+      - ".github/scripts/deploy_space.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never run two deploys at once; a newer push waits for the running one.
+concurrency:
+  group: deploy-space
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_SPACE: ${{ vars.HF_SPACE }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check that the deploy is set up
+        id: check
+        run: python .github/scripts/deploy_space.py --check
+
+      - name: Install the Hugging Face client
+        if: steps.check.outputs.ready == 'true'
+        run: pip install --quiet "huggingface_hub==2.4.0"
+
+      - name: Copy server/ to the Space
+        if: steps.check.outputs.ready == 'true'
+        run: python .github/scripts/deploy_space.py
