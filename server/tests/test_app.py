@@ -50,6 +50,17 @@ def fake_evaluate(model):
     return {"test_accuracy": 0.975, "mistakes": 250, "test_images": 10000}
 
 
+@pytest.fixture(autouse=True)
+def api_alone(monkeypatch):
+    """Test the API on its own: hide the real `limits.py` and `cors.py`.
+
+    The tests below use small stand-in settings. The test at the end of this
+    file checks the API together with the real files.
+    """
+    monkeypatch.setitem(sys.modules, "server.limits", None)
+    monkeypatch.setitem(sys.modules, "server.cors", None)
+
+
 @pytest.fixture
 def trainer():
     return FakeTrainer()
@@ -242,3 +253,28 @@ def test_training_code_can_refuse_bad_values(trainer):
         assert "between 1 and 5" in refused.json()["detail"]
         assert c.post("/train", json={"epochs": 1}).status_code == 202
     assert trainer.seen_settings == [{**DEFAULTS, "epochs": 1}]
+
+
+def test_works_with_the_real_limits_and_cors_files(trainer, monkeypatch):
+    monkeypatch.delitem(sys.modules, "server.limits")
+    monkeypatch.delitem(sys.modules, "server.cors")
+    from server import limits
+
+    backend = Backend(train=trainer.train, export=fake_export, default_settings=DEFAULTS)
+    with TestClient(create_app(backend)) as c:
+        started = c.post("/train", json={"epochs": 1})
+        assert started.status_code == 202
+        settings = started.json()["settings"]
+        assert settings == {**limits.validate_settings({}), "epochs": 1}
+        assert len(settings) == 13
+        assert wait_until_finished(c, started.json()["job_id"])["status"] == "done"
+
+        refused = c.post("/train", json={"epochs": 99})
+        assert refused.status_code == 400
+        assert "Epochs" in refused.json()["detail"]
+
+        # The GitHub Pages site may call the server, another site may not.
+        allowed = c.get("/wake", headers={"Origin": "https://maxgerashenko.github.io"})
+        assert allowed.headers.get("access-control-allow-origin") == "https://maxgerashenko.github.io"
+        other = c.get("/wake", headers={"Origin": "https://example.com"})
+        assert "access-control-allow-origin" not in other.headers
