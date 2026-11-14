@@ -1,0 +1,9 @@
+{
+  "name": "cnn-digits-export-tests",
+  "private": true,
+  "type": "module",
+  "description": "TensorFlow.js, used only to test that exported models load.",
+  "devDependencies": {
+    "@tensorflow/tfjs": "4.22.0"
+  }
+}
