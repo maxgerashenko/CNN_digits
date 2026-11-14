@@ -227,3 +227,18 @@ def test_uses_cors_and_limits_when_those_files_exist(trainer, monkeypatch):
         assert refused.status_code == 400
         assert refused.json()["detail"] == "Epochs must be 1 to 5."
         assert c.post("/train", json={"epochs": 1}).json()["settings"]["checked"] is True
+
+
+def test_training_code_can_refuse_bad_values(trainer):
+    def validate(settings):
+        if settings["epochs"] > 5:
+            raise ValueError("epochs must be between 1 and 5, got 99")
+        return settings
+
+    backend = Backend(train=trainer.train, export=fake_export, default_settings=DEFAULTS, validate=validate)
+    with TestClient(create_app(backend)) as c:
+        refused = c.post("/train", json={"epochs": 99})
+        assert refused.status_code == 400
+        assert "between 1 and 5" in refused.json()["detail"]
+        assert c.post("/train", json={"epochs": 1}).status_code == 202
+    assert trainer.seen_settings == [{**DEFAULTS, "epochs": 1}]
