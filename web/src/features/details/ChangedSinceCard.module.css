@@ -1,0 +1,27 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px var(--space-card);
+}
+
+.line {
+  margin: 0;
+  font-size: var(--text-body);
+}
+
+.old {
+  font-family: var(--font-mono);
+  color: var(--color-accent);
+}
+
+.new {
+  font-family: var(--font-mono);
+}
+
+.note {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}

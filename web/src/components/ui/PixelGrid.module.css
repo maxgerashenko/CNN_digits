@@ -1,0 +1,13 @@
+.grid {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-map);
+  background: var(--ramp-dark);
+}
+
+/* A grid without lines is drawn small and scaled up, so keep its cells sharp. */
+.pixelated {
+  image-rendering: pixelated;
+}

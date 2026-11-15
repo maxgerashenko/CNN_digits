@@ -1,0 +1,15 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.note {
+  margin: 0;
+  padding: 0 4px;
+  font-size: var(--text-hint);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+  text-align: center;
+}

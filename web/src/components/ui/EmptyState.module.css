@@ -1,0 +1,27 @@
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.card {
+  padding: 12px var(--space-card);
+  border-radius: var(--radius-card);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+}
+
+.title {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  color: var(--color-accent-text);
+}
+
+.text {
+  font-size: var(--text-hint);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}

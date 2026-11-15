@@ -1,0 +1,21 @@
+.rail {
+  flex: 0 0 var(--size-rail);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 0;
+  padding: 28px 16px 20px;
+  border-right: var(--hairline);
+  background: var(--color-rail);
+}
+
+.name {
+  padding: 0 8px;
+  font-size: var(--text-kpi);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.spacer {
+  flex-grow: 1;
+}

@@ -1,0 +1,82 @@
+.card {
+  display: flex;
+  min-height: 0;
+}
+
+.bars {
+  flex: 1 1 auto;
+  min-height: 170px;
+  gap: 20px;
+  padding: var(--space-card);
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 0 0 92px;
+  width: 92px;
+  min-width: 0;
+}
+
+.digit {
+  font-size: var(--text-digit);
+  line-height: 0.9;
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  color: var(--color-text);
+}
+
+.none {
+  color: var(--color-text-off);
+}
+
+.wide {
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 24px;
+}
+
+.words {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.heading {
+  margin: 0;
+  font-size: var(--text-small);
+  font-weight: 600;
+}
+
+.sentence {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.answer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.wideDigit {
+  line-height: 1;
+}
+
+.widePercent {
+  font-size: var(--text-kpi);
+}
+
+.problem {
+  flex: 1 1 auto;
+  min-height: 120px;
+  align-items: center;
+  padding: var(--space-card);
+}

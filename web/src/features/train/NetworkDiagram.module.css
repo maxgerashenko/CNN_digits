@@ -1,0 +1,82 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 4px;
+  padding: 8px 9px 0;
+  min-width: 0;
+}
+
+@media (min-height: 700px) {
+  .sticky {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+}
+
+.viz {
+  position: relative;
+  width: 100%;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.labels {
+  position: relative;
+  height: 28px;
+}
+
+.label {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--text-tiny);
+}
+
+.title {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.detail {
+  color: var(--color-text-muted);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 6px;
+  border-top: var(--hairline);
+  font-family: var(--font-mono);
+}
+
+.params {
+  font-size: var(--text-button);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.unit {
+  font-size: var(--text-label);
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.chain {
+  font-size: var(--text-label);
+  color: var(--color-text-muted);
+}

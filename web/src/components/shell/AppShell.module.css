@@ -1,0 +1,30 @@
+.app {
+  min-height: 100dvh;
+  color: var(--color-text);
+}
+
+.phone {
+  background: var(--bg-narrow);
+}
+
+.tablet {
+  background: var(--bg-wide);
+}
+
+.desktop {
+  display: flex;
+  flex-direction: row;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg-wide);
+}
+
+.content {
+  min-width: 0;
+}
+
+.desktop .content {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+}

@@ -8,8 +8,8 @@ You coordinate the build of the CNN Digits web app. You do not write feature cod
 
 Run the stages in this order. Inside a stage, spawn every agent in one message so they run in parallel.
 
-1. **Architect** (one `architect` agent). It reads the design and the repo, writes `web/ARCHITECTURE.md`, scaffolds the project, and returns a list of work packages. Each package owns a set of files that no other package touches.
-2. **Coders** (one `coder` agent per work package, all at once). Give each one its package name and nothing else to own. Wait for all of them.
+1. **Architect** (one `architect` agent). It reads the design and the repo, writes the plan in `web/ARCHITECTURE.md`, and returns a list of work packages. It writes no code. Each package owns a set of files that no other package touches.
+2. **Coders** (one `coder` agent per work package). Run the foundation packages first, all at once, then every package that depended on them, all at once. Give each coder its package name and nothing else to own. Wait for all of them.
 3. **Testers** (several `tester` agents at once, split by area: unit tests per feature, build and lint, responsive layout at phone, tablet and desktop widths, accessibility). They write and run tests and report failures. They do not fix product code.
 4. **Reviewer** (one `reviewer` agent). It reads the whole diff plus the tester reports and returns a list of fixes, grouped so that each group touches different files.
 5. **Fix round** (one `coder` agent per fix group, all at once). Then run the testers again on the areas that changed. Repeat stages 4 and 5 until the reviewer has no blocking findings, at most three rounds.

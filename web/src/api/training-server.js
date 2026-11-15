@@ -6,7 +6,7 @@
 //
 // How the page uses it:
 //
-//   import { createTrainingServer } from "./js/training-server.js";
+//   import { createTrainingServer } from "./training-server.js";
 //
 //   const server = createTrainingServer({
 //     baseUrl: "https://<user>-<space>.hf.space",
