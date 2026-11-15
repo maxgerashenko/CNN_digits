@@ -8,6 +8,7 @@ import { ApiError, createTrainingApi, type JobSnapshot, type TrainingApi } from 
 import { STATUS_TEXT, createTrainingServer, type ServerStatus, type TrainingServer } from '../api/training-server.js';
 import { TRAINING_SERVER_URL } from '../config';
 import { countParams } from '../lib/architecture';
+import { createFetchEventSource, withServerHeaders } from '../api/serverFetch';
 import { loadModel, type LoadedModel } from '../model/modelLoader';
 import type { EpochPoint, RunRecord, RunResults, Settings, WeightAnalysis } from '../types';
 import { useModelStore } from './modelStore';
@@ -98,15 +99,25 @@ export interface TrainingDeps {
 let deps: TrainingDeps | null = null;
 
 function defaultDeps(): TrainingDeps {
-  const base: Pick<TrainingDeps, 'loadModel' | 'now'> = { loadModel: (url) => loadModel(url), now: () => Date.now() };
+  // Every request to the training server carries the tunnel header (api/serverFetch.ts).
+  const serverFetch = withServerHeaders();
+  const base: Pick<TrainingDeps, 'loadModel' | 'now'> = {
+    loadModel: (url) => loadModel(url, { fetchFn: serverFetch }),
+    now: () => Date.now(),
+  };
   if (!TRAINING_SERVER_URL) return { ...base, server: null, api: null };
   return {
     ...base,
     server: createTrainingServer({
       baseUrl: TRAINING_SERVER_URL,
+      fetchFn: serverFetch,
       onStatus: (status, text) => useTrainingStore.setState({ server: { status, text } }),
     }),
-    api: createTrainingApi({ baseUrl: TRAINING_SERVER_URL }),
+    api: createTrainingApi({
+      baseUrl: TRAINING_SERVER_URL,
+      fetchFn: serverFetch,
+      eventSourceFactory: (url) => createFetchEventSource(url, serverFetch),
+    }),
   };
 }
 
