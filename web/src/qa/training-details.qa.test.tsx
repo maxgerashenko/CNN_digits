@@ -564,7 +564,7 @@ describe('QA: change-first cards', () => {
     const text = explainCheck(epochs);
     expect(text).toContain('Epochs was the only change');
     expect(text).toContain('went from 0.07 to 0.09');
-    expect(text).toContain('Try Epochs 5 next.');
+    expect(text).toContain('Try Epochs 6 next.');
   });
 
   it('a card with no previous run gives no gap percentage and says it is the first run', () => {

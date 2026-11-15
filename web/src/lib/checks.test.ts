@@ -191,7 +191,7 @@ describe('buckets and priority', () => {
 
   it('does not make a failed check "first" when it has nothing to try', () => {
     const atLimit = evaluateChecks({
-      run: { ...runOne, settings: settingsWith({ epochs: 5, train_images: 60000, conv_blocks: 3 }) },
+      run: { ...runOne, settings: settingsWith({ epochs: 20, train_images: 60000, conv_blocks: 3 }) },
       settings: DEFAULT_SETTINGS,
     });
     expect(checkOf(atLimit, 'epochs').status).toBe('improve');

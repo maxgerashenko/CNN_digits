@@ -32,7 +32,7 @@ export const SETTING_SPECS: readonly SettingSpec[] = [
   { key: 'dense_units', label: 'Dense units', hint: 'Size of each hidden dense layer', group: 'Architecture', control: 'segmented', choices: [32, 64, 128, 256], default: 128 },
   { key: 'dropout', label: 'Dropout', hint: 'Higher fights overfitting', group: 'Architecture', control: 'slider', min: 0, max: 0.5, step: 0.1, default: 0.1 },
   { key: 'learning_rate', label: 'Learning rate', hint: 'Too high jumps around, too low is slow', group: 'Training', control: 'segmented', choices: [0.0001, 0.001, 0.01], default: 0.001 },
-  { key: 'epochs', label: 'Epochs', hint: 'More passes, longer wait', group: 'Training', control: 'stepper', min: 1, max: 5, step: 1, default: 2 },
+  { key: 'epochs', label: 'Epochs', hint: 'More passes, longer wait. Stops early when it stops improving', group: 'Training', control: 'stepper', min: 1, max: 20, step: 1, default: 2 },
   { key: 'batch_norm', label: 'Batch norm', hint: 'Off trains slower and less stable', group: 'Advanced', control: 'switch', default: true },
   { key: 'batch_size', label: 'Batch size', hint: 'Bigger is faster, sometimes less accurate', group: 'Advanced', control: 'segmented', choices: [32, 64, 128], default: 32 },
   { key: 'train_images', label: 'Training images', hint: 'More data, better model, longer wait', group: 'Advanced', control: 'segmented', choices: [5000, 10000, 30000, 60000], default: 10000 },

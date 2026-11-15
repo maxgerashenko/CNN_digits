@@ -85,7 +85,7 @@ def test_largest_and_smallest_allowed_settings_pass():
 @pytest.mark.parametrize(
     "name, value",
     [
-        ("epochs", 6),  # the issue: epochs max 5
+        ("epochs", 21),  # epochs max 20
         ("epochs", 0),
         ("epochs", 2.5),
         ("epochs", 10**9),
@@ -157,7 +157,7 @@ def test_all_problems_are_reported_at_once():
     with pytest.raises(limits.SettingsError) as error:
         limits.validate_settings({"epochs": 99, "train_images": 10**7, "filters": 5})
     assert len(error.value.errors) == 3
-    assert "from 1 to 5" in str(error.value)
+    assert "from 1 to 20" in str(error.value)
     assert "60,000" in str(error.value)
 
 
@@ -178,7 +178,7 @@ def test_describe_limits_can_be_sent_as_json():
     import json
 
     info = json.loads(json.dumps(limits.describe_limits()))
-    assert info["settings"]["epochs"] == {"label": "Epochs", "kind": "int", "min": 1, "max": 5, "default": 2}
+    assert info["settings"]["epochs"] == {"label": "Epochs", "kind": "int", "min": 1, "max": 20, "default": 2}
     assert info["time_limit_seconds"] == limits.TIME_LIMIT_SECONDS
 
 

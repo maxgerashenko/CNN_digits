@@ -69,6 +69,18 @@ describe('TrainingStatus', () => {
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50');
   });
 
+  it('done before the last epoch: says the run stopped early', () => {
+    setTraining({
+      phase: 'done',
+      jobSettings: settingsWith({ epochs: 20 }),
+      epochs: makeEpochs([row(0.96, 0.14, 12), row(0.97, 0.1, 24), row(0.97, 0.11, 36)]),
+    });
+    wrap(<TrainingStatus />);
+    expect(screen.getByText('Stopped early after epoch 3 of 20: no more progress')).toBeInTheDocument();
+    expect(screen.queryByText('Training done')).toBeNull();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');
+  });
+
   it('finishing, done, stopped, error', () => {
     setTraining({ phase: 'finishing', jobSettings: settings, epochs: makeEpochs([row(0.96, 0.14, 29), row(0.97, 0.1, 58)]) });
     wrap(<TrainingStatus />);

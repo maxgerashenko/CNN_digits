@@ -57,7 +57,7 @@ All 13 settings are in the first version. Nine are always visible (Basic); four 
 | Dense units | Architecture | 32, 64, 128, 256 | 128 | Size of each hidden dense layer | Basic |
 | Dropout | Architecture | 0 to 0.5 in steps of 0.1 | 0.1 | Higher fights overfitting, too high hurts accuracy | Basic |
 | Learning rate | Training | 0.0001, 0.001, 0.01 | 0.001 | Too high jumps around, too low learns slowly | Basic |
-| Epochs | Training | 1 to 5 | 2 | More passes over the data, longer wait | Basic |
+| Epochs | Training | 1 to 20 | 2 | More passes over the data, longer wait. Training stops early when the validation loss has not improved for 3 epochs | Basic |
 | Batch norm | Architecture | On / Off | On | Off trains slower and less stable | Advanced |
 | Batch size | Training | 32, 64, 128 | 32 | Bigger is faster per epoch, sometimes less accurate | Advanced |
 | Training images | Training | 5,000, 10,000, 30,000 or 60,000 (the server accepts any whole number from 5,000 to 60,000) | 10,000 | More data, better model, longer wait | Advanced |
