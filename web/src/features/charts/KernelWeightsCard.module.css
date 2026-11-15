@@ -1,0 +1,43 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.heading {
+  margin: 0;
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 0 0 calc((100% - 20px) / 3);
+  min-width: 0;
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}

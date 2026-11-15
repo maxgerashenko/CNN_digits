@@ -1,0 +1,71 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding-top: 16px;
+  border-top: var(--hairline);
+  --map-gap: 10px;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.step {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  color: var(--color-accent-text);
+}
+
+.spec {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 500;
+}
+
+.maps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--map-gap);
+}
+
+.map {
+  flex: 0 0 calc((100% - 3 * var(--map-gap)) / 4);
+  min-width: 0;
+}
+
+.note {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+/* The tablet card: denser, and the block takes an equal share of the card's height. */
+.card {
+  flex: 1 1 auto;
+  justify-content: center;
+  gap: 10px;
+  padding-top: 14px;
+  --map-gap: 8px;
+}
+
+.card .title {
+  font-size: var(--text-tab);
+}
+
+.card .note {
+  font-size: var(--text-hint);
+  line-height: 1.45;
+}

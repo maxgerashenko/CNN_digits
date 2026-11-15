@@ -1,0 +1,52 @@
+.stepper {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+}
+
+.button {
+  width: 44px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+
+.button:disabled {
+  color: var(--color-text-off);
+}
+
+.value {
+  min-width: 24px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-button);
+  font-weight: 500;
+}
+
+.sm {
+  justify-content: space-between;
+  height: 34px;
+  padding: 0 4px;
+  border-radius: var(--radius-control-sm);
+}
+
+.sm .button {
+  width: 40px;
+  height: 34px;
+  color: var(--color-text-muted);
+  font-size: 1.125rem;
+}
+
+.sm .button:disabled {
+  color: var(--color-text-off);
+}
+
+.sm .value {
+  font-size: var(--text-tab);
+}

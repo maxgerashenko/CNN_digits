@@ -1,0 +1,38 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.inset {
+  padding: 4px var(--space-card) 0;
+}
+
+.line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.heading {
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.accent {
+  color: var(--color-accent-text);
+}
+
+.aside {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  color: var(--color-text-muted);
+}
+
+.note {
+  font-size: var(--text-hint);
+  color: var(--color-text-muted);
+}

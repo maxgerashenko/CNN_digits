@@ -1,0 +1,31 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+}
+
+.row {
+  display: flex;
+  min-width: 0;
+  padding: 10px var(--space-card);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.between {
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stack {
+  flex-direction: column;
+  gap: 10px;
+}

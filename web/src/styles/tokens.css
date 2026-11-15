@@ -1,0 +1,105 @@
+/* Design tokens. Every colour, size, radius and font in the app comes from
+   here. Values are read from the design canvas (dark theme only). */
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces, darkest first */
+  --color-bg: #07070b; /* page */
+  --color-surface-1: #14141c; /* tab bar pill, diagram layers */
+  --color-surface-2: #1c1c26; /* drawing pad, control tracks, bar tracks, disabled button */
+  --color-surface-3: #24242e; /* chart grid lines, progress track, pane divider */
+  --color-surface-4: #2a2a36; /* outline of quiet buttons, small "Set" button */
+  --color-selected: #33333f; /* selected pill or segment */
+  --color-border-strong: #3a3a48; /* clear button outline, bar baseline, switch off */
+  --color-rail: rgba(7, 7, 11, 0.55); /* desktop rail */
+
+  /* Text */
+  --color-text: #f5f5f5;
+  --color-text-muted: #a3a4b5;
+  --color-text-dim: #75768a; /* chevrons, axis ends, non-top bars */
+  --color-text-off: #4a4a58; /* stepper button at its limit */
+  --color-line: #d8d8e2; /* diagram outlines */
+  --color-ideal: #85869a; /* dashed "ideal" lines */
+
+  /* Accent */
+  --color-accent: #7c63f5; /* fills: top bar, progress, slider, goal line, "run 1" */
+  --color-accent-text: #a796ff; /* small labels, links, values */
+  --color-accent-soft: #cfc6ff; /* link hover, text on the small "Set" button */
+  --gradient-accent: linear-gradient(90deg, #5b43d6, #8e79ff); /* active tab, main button */
+  --color-on-accent: #ffffff;
+
+  /* Status */
+  --color-ok: #3dd68c;
+  --color-warn: #f5c451;
+
+  /* Glass cards */
+  --glass-bg: rgba(255, 255, 255, 0.06);
+  --glass-blur: blur(24px);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --hairline: 1px solid rgba(255, 255, 255, 0.08);
+  --ring-nav: inset 0 0 0 1px #2a2a36;
+
+  /* Page background: two glows in the top right corner over the page colour */
+  --glow-coral: rgba(232, 120, 96, 0.55);
+  --glow-violet: rgba(74, 52, 180, 0.55);
+  --bg-narrow:
+    radial-gradient(70% 260px at 100% 0, var(--glow-coral), rgba(232, 120, 96, 0) 70%),
+    radial-gradient(90% 340px at 70% 0, var(--glow-violet), rgba(74, 52, 180, 0) 72%), var(--color-bg);
+  --bg-wide:
+    radial-gradient(38% 360px at 100% 0, var(--glow-coral), rgba(232, 120, 96, 0) 70%),
+    radial-gradient(55% 460px at 80% 0, var(--glow-violet), rgba(74, 52, 180, 0) 72%), var(--color-bg);
+
+  /* Feature map and drawing colours: value 0 is the dark end, 1 the bright end */
+  --ramp-dark: rgb(18, 18, 24);
+  --ramp-ink: rgb(245, 245, 245);
+  --ramp-violet: rgb(167, 150, 255);
+
+  /* Type */
+  --font-sans: 'Geist Variable', Geist, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --text-digit: 6rem; /* 96px, weight 300: the answer */
+  --text-metric: 2.125rem; /* 34px, weight 300: live accuracy and loss */
+  --text-title: 1.75rem; /* 28px, weight 600: phone page title */
+  --text-title-tablet: 1.375rem; /* 22px, weight 600 */
+  --text-kpi: 1.25rem; /* 20px: rail title (600), KPI values (300) */
+  --text-nav: 1.0625rem; /* 17px: pushed screen title (600), card names (500) */
+  --text-button: 1rem; /* 16px */
+  --text-body: 0.9375rem; /* 15px: rows, links */
+  --text-tab: 0.875rem; /* 14px: tabs, small buttons */
+  --text-small: 0.8125rem; /* 13px: notes, section headings (600), pills (500) */
+  --text-hint: 0.75rem; /* 12px: hints under labels */
+  --text-label: 0.6875rem; /* 11px mono: labels, chips, legends */
+  --text-tiny: 0.625rem; /* 10px mono: diagram labels, axis ends */
+
+  /* Radii */
+  --radius-card: 24px;
+  --radius-pad: 16px;
+  --radius-control: 16px;
+  --radius-control-inner: 14px;
+  --radius-control-sm: 12px;
+  --radius-control-sm-inner: 10px;
+  --radius-pill: 999px;
+  --radius-map: 2px;
+
+  /* Spacing */
+  --space-page-x: 20px; /* side padding of a phone screen or pane */
+  --space-page-top: 12px;
+  --space-stack: 14px; /* gap between blocks of a screen */
+  --space-card: 16px; /* padding inside a card */
+  --space-tablet-x: 26px; /* side and bottom padding of the tablet layout */
+  --space-tablet-gap: 20px; /* gap between tablet columns */
+
+  /* Sizes */
+  --size-touch: 44px; /* smallest touch target */
+  --size-header: 44px; /* title row of a screen */
+  --size-header-tablet: 72px;
+  --size-button: 50px; /* main button */
+  --size-row: 52px; /* one-line link row */
+  --size-pill: 36px; /* model pills, small "Set" button */
+  --size-tab: 44px;
+  --size-rail: 220px;
+  --size-column-max: 560px; /* widest a single phone-style column gets */
+  --size-pane-min: 320px;
+  --size-pane-max: 430px;
+}

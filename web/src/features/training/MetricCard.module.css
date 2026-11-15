@@ -1,0 +1,61 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.value {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  color: var(--color-text-muted);
+}
+
+.number {
+  font-size: var(--text-metric);
+  line-height: 1;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+}
+
+.goal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.chart {
+  flex: 1 1 auto;
+  min-height: 64px;
+}
+
+.hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.verdict {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.hintText {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}

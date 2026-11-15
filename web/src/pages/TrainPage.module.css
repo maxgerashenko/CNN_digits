@@ -1,0 +1,9 @@
+.left {
+  flex: 0 0 auto;
+  width: clamp(300px, 29.5%, 380px);
+}
+
+.right {
+  flex: 0 0 auto;
+  width: clamp(260px, 25%, 320px);
+}
