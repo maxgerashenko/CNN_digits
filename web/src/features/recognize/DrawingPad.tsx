@@ -14,6 +14,7 @@ export interface DrawingPadProps {
 export function DrawingPad({ className }: DrawingPadProps) {
   const pixels = useDrawingStore((s) => s.pixels);
   const blank = useDrawingStore((s) => s.blank);
+  const sample = useDrawingStore((s) => s.sample);
   const stroke = useDrawingStore((s) => s.stroke);
   const clear = useDrawingStore((s) => s.clear);
   const surface = useRef<HTMLDivElement>(null);
@@ -84,13 +85,20 @@ export function DrawingPad({ className }: DrawingPadProps) {
           data={pixels}
           size={28}
           lines
-          label={blank ? 'Drawing pad, 28 by 28 cells, empty' : 'Drawing pad, 28 by 28 cells, with your drawing'}
+          label={
+            blank
+              ? 'Drawing pad, 28 by 28 cells, empty'
+              : sample
+                ? 'Drawing pad, 28 by 28 cells, with a sample digit 5'
+                : 'Drawing pad, 28 by 28 cells, with your drawing'
+          }
           className={styles.grid}
         />
       </div>
       <button type="button" aria-label="Clear drawing" className={styles.clear} onClick={clear}>
         <TrashIcon />
       </button>
+      {sample && <span className={styles.hint}>Clear &amp; draw</span>}
       <span className={styles.size} aria-hidden="true">
         28 × 28
       </span>

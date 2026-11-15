@@ -51,4 +51,24 @@
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
   pointer-events: none;
+  /* A label, not text to pick up: a long press on the pad must not select it. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Under the sample digit: what to do next. */
+.hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  text-align: center;
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+  pointer-events: none;
+  /* A label, not text to pick up: a long press on the pad must not select it. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }

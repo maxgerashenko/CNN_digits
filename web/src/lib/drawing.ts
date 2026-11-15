@@ -67,3 +67,30 @@ export function pointerToPad(
   const y = ((clientY - box.top) / box.height) * GRID;
   return { x: Math.max(0, Math.min(GRID, x)), y: Math.max(0, Math.min(GRID, y)) };
 }
+
+/**
+ * The line of the sample digit 5, in pad cell units: the top bar from right
+ * to left, down the stem, then round the bowl. Like a handwritten 5 it sits
+ * in the middle 20 x 20 cells, as the MNIST digits do.
+ */
+const SAMPLE_FIVE: readonly PadPoint[] = [
+  { x: 18.5, y: 6 },
+  { x: 10.5, y: 6 },
+  { x: 10, y: 12.5 },
+  { x: 12.5, y: 11.6 },
+  { x: 15, y: 11.7 },
+  { x: 17.2, y: 12.9 },
+  { x: 18.5, y: 15 },
+  { x: 18.6, y: 17.5 },
+  { x: 17.5, y: 19.8 },
+  { x: 15.3, y: 21.4 },
+  { x: 12.6, y: 21.9 },
+  { x: 9.8, y: 20.8 },
+];
+
+/** A neatly drawn 5, made with the same brush as a visitor's drawing. */
+export function samplePixels(): Float32Array {
+  let pixels = blankPixels();
+  for (let i = 1; i < SAMPLE_FIVE.length; i++) pixels = stampStroke(pixels, SAMPLE_FIVE[i - 1], SAMPLE_FIVE[i]);
+  return pixels;
+}

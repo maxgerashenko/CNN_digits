@@ -29,6 +29,15 @@ function readyModel() {
 beforeEach(() => resetStores());
 
 describe('DrawingPad', () => {
+  it('shows the hint under the sample digit until the pad is cleared', () => {
+    act(() => useDrawingStore.getState().showSample());
+    ui(<DrawingPad />);
+    expect(screen.getByText('Clear & draw')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Drawing pad, 28 by 28 cells, with a sample digit 5' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Clear drawing' }));
+    expect(screen.queryByText('Clear & draw')).toBeNull();
+  });
+
   it('paints through the store on pointer events and clears', () => {
     ui(<DrawingPad />);
     const surface = screen.getByTestId('drawing-surface');
