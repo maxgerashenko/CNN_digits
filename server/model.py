@@ -14,8 +14,10 @@ Main functions:
     evaluate(model)              -> test accuracy and mistakes out of 10,000
 """
 
+import contextlib
 import functools
 import time
+from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
@@ -224,6 +226,25 @@ def build_model(settings=None):
     return model
 
 
+@contextlib.contextmanager
+def _one_download_at_a_time():
+    """Let one process at a time fetch MNIST.
+
+    Keras downloads the file on first use. Two training processes that start
+    together would both write it, and one would read a half-written file.
+    """
+    try:
+        import fcntl
+    except ImportError:  # not on Windows; there the server trains one run at a time
+        yield
+        return
+    folder = Path.home() / ".keras"
+    folder.mkdir(parents=True, exist_ok=True)
+    with open(folder / "mnist.lock", "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        yield
+
+
 @functools.lru_cache(maxsize=1)
 def load_data():
     """Load MNIST once and format it like the notebook.
@@ -231,9 +252,10 @@ def load_data():
     Returns (train_images, train_labels), (test_images, test_labels) with
     images as float32 in [0, 1] and shape (N, 28, 28, 1).
     """
-    (train_image, train_label), (test_image, test_label) = (
-        tf.keras.datasets.mnist.load_data()
-    )
+    with _one_download_at_a_time():
+        (train_image, train_label), (test_image, test_label) = (
+            tf.keras.datasets.mnist.load_data()
+        )
     train = (train_image / 255.0).astype("float32")[..., np.newaxis]
     test = (test_image / 255.0).astype("float32")[..., np.newaxis]
     return (train, train_label), (test, test_label)

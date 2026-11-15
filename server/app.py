@@ -8,7 +8,17 @@ The web page calls these addresses:
     GET  /train/{job_id}            the same information as one plain JSON answer
     GET  /train/{job_id}/model/...  the trained model files (model.json, weights.bin)
 
-One training runs at a time. Other runs wait in line and are told their place.
+One training runs at a time, unless TRAIN_WORKERS allows more (see below).
+Other runs wait in line and are told their place.
+
+    TRAIN_WORKERS   How many runs may train at the same time (1 to 8, default 1).
+                    The first trains inside the server. Each extra one trains in
+                    its own Python process, which starts when the line needs it
+                    and closes after two idle minutes, so an idle server uses
+                    the same memory as before. Each needs about 1.5 GB of memory.
+    TRAIN_WORKERS_WARM  How many of them stay ready once they have started
+                    (default 1: only the first). With 2, the first extra process
+                    does not close when idle, so two runs always start at once.
 
 Run it locally from the repository root:
 
@@ -25,6 +35,8 @@ import asyncio
 import importlib
 import json
 import logging
+import multiprocessing
+import os
 import shutil
 import tempfile
 import threading
@@ -45,6 +57,33 @@ MAX_FINISHED_JOBS = 20
 # "still here" line so the connection is not closed while an epoch is running.
 STREAM_POLL_SECONDS = 0.25
 STREAM_KEEPALIVE_SECONDS = 15
+# The most runs that may ever train at the same time, whatever TRAIN_WORKERS says.
+WORKERS_LIMIT = 8
+# An extra training process closes after this long without work.
+WORKER_IDLE_SECONDS = 120
+
+
+def _workers_setting(name: str) -> int:
+    """An environment variable as a number from 1 to WORKERS_LIMIT. Anything else counts as 1."""
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return 1
+    try:
+        value = int(raw)
+    except ValueError:
+        log.warning("%s=%r is not a whole number; 1 is used.", name, raw)
+        return 1
+    return max(1, min(WORKERS_LIMIT, value))
+
+
+def max_workers_from_env() -> int:
+    """TRAIN_WORKERS: the most runs that train at the same time."""
+    return _workers_setting("TRAIN_WORKERS")
+
+
+def warm_workers_from_env() -> int:
+    """TRAIN_WORKERS_WARM: how many workers stay ready when there is no work."""
+    return _workers_setting("TRAIN_WORKERS_WARM")
 
 
 def _import_sibling(name: str):
@@ -186,17 +225,138 @@ class Job:
         return self.status in ("done", "error")
 
 
-class JobManager:
-    """Keeps the line of training runs and trains them one at a time."""
+def run_training(backend: Backend, settings: dict, out_dir: str, on_progress: Callable, epochs: list) -> tuple:
+    """Train, measure and export one model. Returns (results, file names).
 
-    def __init__(self, backend: Backend):
+    `epochs` is the list that `on_progress` fills, one entry per epoch.
+    """
+    start = time.monotonic()
+    model = backend.train(settings, progress_callback=on_progress)
+    seconds = time.monotonic() - start
+
+    results: dict = {}
+    if epochs:
+        results.update({k: v for k, v in epochs[-1].items() if k not in ("epoch", "epochs")})
+    results.update(_plain(backend.evaluate(model)))
+    results["epochs"] = len(epochs)
+    results["training_seconds"] = round(seconds, 1)
+
+    backend.export(model, out_dir)
+    files = sorted(p.name for p in Path(out_dir).iterdir() if p.is_file())
+    if not files:
+        raise RuntimeError("The export step wrote no model files.")
+    return results, files
+
+
+def _training_process(conn) -> None:
+    """The body of an extra training process. Trains what the server sends it.
+
+    It gets (settings, out_dir) and answers with ("epoch", data) after each
+    epoch, then ("done", (results, files)) or ("error", message). None ends it.
+    """
+    backend = Backend()
+    while True:
+        try:
+            message = conn.recv()
+        except (EOFError, OSError):
+            return
+        if message is None:
+            return
+        settings, out_dir = message
+        local = Job(settings)  # only used to bring each epoch's numbers into one form
+
+        def on_progress(*args, **kwargs):
+            local.on_progress(*args, **kwargs)
+            conn.send(("epoch", local.epochs[-1]))
+
+        try:
+            conn.send(("done", run_training(backend, settings, out_dir, on_progress, local.epochs)))
+        except Exception as exc:
+            log.exception("Training failed in the training process")
+            conn.send(("error", str(exc)))
+
+
+class ProcessRunner:
+    """Trains in a separate Python process, so runs can train at the same time.
+
+    The process starts with the first run and is reused for the next ones.
+    """
+
+    def __init__(self):
+        self._context = multiprocessing.get_context("spawn")
+        self._process = None
+        self._conn = None
+
+    def run(self, settings: dict, out_dir: str, on_progress: Callable) -> tuple:
+        if self._process is None or not self._process.is_alive():
+            self.close()
+            self._conn, child = self._context.Pipe()
+            self._process = self._context.Process(
+                target=_training_process, args=(child,), daemon=True, name="trainer-process"
+            )
+            self._process.start()
+            child.close()
+        self._conn.send((settings, out_dir))
+        while True:
+            try:
+                kind, payload = self._conn.recv()
+            except (EOFError, OSError):
+                self.close()
+                raise RuntimeError("the training process stopped. It may have run out of memory.")
+            if kind == "epoch":
+                on_progress(payload)
+            elif kind == "done":
+                return payload
+            else:
+                raise RuntimeError(payload)
+
+    def close(self) -> None:
+        process, conn = self._process, self._conn
+        self._process = self._conn = None
+        if conn is not None:
+            try:
+                conn.send(None)
+            except (OSError, ValueError):
+                pass
+            conn.close()
+        if process is not None:
+            process.join(timeout=5)
+            if process.is_alive():
+                process.terminate()
+
+
+class JobManager:
+    """Keeps the line of training runs and trains up to `max_workers` at a time.
+
+    The first worker trains inside the server and never stops. The others are
+    started when more runs wait than workers are free. Each of those trains
+    through its own runner (a `ProcessRunner` unless `make_runner` gives
+    something else) and stops after `idle_seconds` without work, unless it
+    is one of the `warm_workers` that stay ready.
+    """
+
+    def __init__(
+        self,
+        backend: Backend,
+        max_workers: int | None = None,
+        make_runner: Callable | None = None,
+        idle_seconds: float = WORKER_IDLE_SECONDS,
+        warm_workers: int | None = None,
+    ):
         self.backend = backend
+        self.max_workers = max_workers_from_env() if max_workers is None else max(1, int(max_workers))
+        warm = warm_workers_from_env() if warm_workers is None else max(1, int(warm_workers))
+        self.warm_workers = min(warm, self.max_workers)
         self.jobs: dict[str, Job] = {}
         self._waiting: list[Job] = []
         self._finished: list[Job] = []
-        self._running: Job | None = None
+        self._running = 0  # runs training now
+        self._free = 0  # workers waiting for a run, or just started
+        self._extra = 0  # extra workers alive
         self._lock = threading.Condition()
         self._worker: threading.Thread | None = None
+        self._make_runner = make_runner or ProcessRunner
+        self._idle_seconds = idle_seconds
 
     # -- called by the API ---------------------------------------------------
 
@@ -206,8 +366,13 @@ class JobManager:
             self.jobs[job.id] = job
             self._waiting.append(job)
             if self._worker is None or not self._worker.is_alive():
+                self._free += 1
                 self._worker = threading.Thread(target=self._work, daemon=True, name="trainer")
                 self._worker.start()
+            elif len(self._waiting) > self._free and self._extra < self.max_workers - 1:
+                self._free += 1
+                self._extra += 1
+                threading.Thread(target=self._work_extra, daemon=True, name="trainer-extra").start()
             self._lock.notify()
         return job
 
@@ -216,12 +381,11 @@ class JobManager:
         with self._lock:
             if job not in self._waiting:
                 return 0
-            ahead = self._waiting.index(job)
-            return ahead + (1 if self._running else 0) + (0 if self._running else 1)
+            return self._waiting.index(job) + 1
 
     def state(self) -> dict:
         with self._lock:
-            return {"busy": self._running is not None, "waiting": len(self._waiting)}
+            return {"busy": self._running > 0, "waiting": len(self._waiting)}
 
     def snapshot(self, job: Job) -> dict:
         with job.lock:
@@ -237,62 +401,80 @@ class JobManager:
         data["position"] = self.position(job)
         return data
 
-    # -- the worker thread ---------------------------------------------------
+    # -- the workers -----------------------------------------------------------
 
     def _work(self) -> None:
+        """The first worker: trains inside the server, waits for work for ever."""
         while True:
             with self._lock:
                 while not self._waiting:
                     self._lock.wait()
-                job = self._waiting.pop(0)
-                self._running = job
-            try:
-                self._train(job)
-            finally:
-                with self._lock:
-                    self._running = None
-                    self._finished.append(job)
-                    old = self._finished[:-MAX_FINISHED_JOBS]
-                    self._finished = self._finished[-MAX_FINISHED_JOBS:]
-                    for gone in old:
-                        self.jobs.pop(gone.id, None)
-                for gone in old:
-                    if gone.out_dir:
-                        shutil.rmtree(gone.out_dir, ignore_errors=True)
+                job = self._take()
+            self._train(job, lambda out_dir: run_training(self.backend, job.settings, out_dir, job.on_progress, job.epochs))
+            with self._lock:
+                self._free += 1
 
-    def _train(self, job: Job) -> None:
+    def _work_extra(self) -> None:
+        """An extra worker: trains through its own runner, stops when idle too long."""
+        runner = self._make_runner()
+        try:
+            while True:
+                with self._lock:
+                    deadline = time.monotonic() + self._idle_seconds
+                    while not self._waiting:
+                        left = deadline - time.monotonic()
+                        if left > 0:
+                            self._lock.wait(left)
+                        elif self._extra > self.warm_workers - 1:
+                            self._free -= 1
+                            self._extra -= 1
+                            return
+                        else:  # one of the workers that stay ready
+                            self._lock.wait()
+                    job = self._take()
+                self._train(job, lambda out_dir: runner.run(job.settings, out_dir, job.on_progress))
+                with self._lock:
+                    self._free += 1
+        finally:
+            runner.close()
+
+    def _take(self) -> Job:
+        """The next run in line. Call with the lock held."""
+        self._free -= 1
+        self._running += 1
+        return self._waiting.pop(0)
+
+    def _train(self, job: Job, run: Callable) -> None:
+        """Train one run with `run(out_dir) -> (results, files)` and record how it ended."""
         job.status = "running"
         job.add_event("started", {"epochs": job.settings.get("epochs")})
+        out_dir = tempfile.mkdtemp(prefix=f"cnn-digits-{job.id[:8]}-")
         try:
-            start = time.monotonic()
-            model = self.backend.train(job.settings, progress_callback=job.on_progress)
-            seconds = time.monotonic() - start
-
-            results: dict = {}
-            if job.epochs:
-                results.update({k: v for k, v in job.epochs[-1].items() if k not in ("epoch", "epochs")})
-            results.update(_plain(self.backend.evaluate(model)))
-            results["epochs"] = len(job.epochs)
-            results["training_seconds"] = round(seconds, 1)
-
-            out_dir = tempfile.mkdtemp(prefix=f"cnn-digits-{job.id[:8]}-")
-            self.backend.export(model, out_dir)
-            files = sorted(p.name for p in Path(out_dir).iterdir() if p.is_file())
-            if not files:
-                raise RuntimeError("The export step wrote no model files.")
-
+            results, files = run(out_dir)
             with job.lock:
                 job.out_dir = out_dir
-                job.files = files
+                job.files = list(files)
                 job.results = results
                 job.status = "done"
                 job.events.append(("done", {"results": results, "files": _file_urls(job)}))
         except Exception as exc:  # the page must always get an answer
             log.exception("Training run %s failed", job.id)
+            shutil.rmtree(out_dir, ignore_errors=True)
             with job.lock:
                 job.error = f"Training failed: {exc}"
                 job.status = "error"
                 job.events.append(("error", {"message": job.error}))
+        finally:
+            with self._lock:
+                self._running -= 1
+                self._finished.append(job)
+                old = self._finished[:-MAX_FINISHED_JOBS]
+                self._finished = self._finished[-MAX_FINISHED_JOBS:]
+                for gone in old:
+                    self.jobs.pop(gone.id, None)
+            for gone in old:
+                if gone.out_dir:
+                    shutil.rmtree(gone.out_dir, ignore_errors=True)
 
 
 def _file_urls(job: Job) -> dict:
@@ -306,9 +488,22 @@ def _sse(name: str, data: dict, event_id: int | None = None) -> str:
     return text + "\n"
 
 
-def create_app(backend: Backend | None = None) -> FastAPI:
+def create_app(
+    backend: Backend | None = None,
+    max_workers: int | None = None,
+    make_runner: Callable | None = None,
+    idle_seconds: float = WORKER_IDLE_SECONDS,
+    warm_workers: int | None = None,
+) -> FastAPI:
+    """Build the web API. The arguments after `backend` are for tests; see JobManager."""
     backend = backend or Backend()
-    manager = JobManager(backend)
+    manager = JobManager(
+        backend,
+        max_workers=max_workers,
+        make_runner=make_runner,
+        idle_seconds=idle_seconds,
+        warm_workers=warm_workers,
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
