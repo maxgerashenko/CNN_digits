@@ -1,0 +1,8 @@
+.caption {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0 4px;
+  font-size: var(--text-hint);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}

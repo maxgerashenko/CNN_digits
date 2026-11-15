@@ -1,0 +1,45 @@
+.answer {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding-top: 16px;
+  border-top: var(--hairline);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.step {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  color: var(--color-accent-text);
+}
+
+.spec {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  color: var(--color-text-muted);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 500;
+}
+
+.note {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.empty {
+  flex: 0 0 auto;
+}

@@ -1,0 +1,35 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+}
+
+.left {
+  min-width: 0;
+  color: var(--color-accent-text);
+}
+
+.right {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.error {
+  color: var(--color-warn);
+}

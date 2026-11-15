@@ -1,0 +1,21 @@
+.slider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+}
+
+.input {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 44px;
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.sm .input {
+  height: 34px;
+}

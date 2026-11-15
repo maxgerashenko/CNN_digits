@@ -1,0 +1,78 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  font-size: var(--text-nav);
+  font-weight: 500;
+}
+
+.action {
+  flex-shrink: 0;
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.next {
+  font-size: var(--text-body);
+}
+
+.compact {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.compactHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.compactName {
+  font-size: var(--text-body);
+  font-weight: 500;
+}
+
+.compactChange {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}

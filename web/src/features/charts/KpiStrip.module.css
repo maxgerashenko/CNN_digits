@@ -1,0 +1,27 @@
+.strip {
+  display: flex;
+  gap: 1px;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+  margin: 0;
+}
+
+.cell {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+}
+
+.value {
+  margin: 0;
+  font-size: var(--text-kpi);
+  font-weight: 300;
+  overflow-wrap: anywhere;
+}

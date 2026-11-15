@@ -1,0 +1,86 @@
+.card {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 10px 4px;
+  text-align: right;
+  vertical-align: baseline;
+  font-weight: 400;
+}
+
+.compact th,
+.compact td {
+  padding-block: 9px;
+}
+
+.table th:first-child,
+.table td:first-child {
+  width: 26%;
+  padding-left: var(--space-card);
+  text-align: left;
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-right: var(--space-card);
+}
+
+.name {
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+
+.prev {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--color-accent);
+}
+
+.now {
+  font-size: var(--text-nav);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.ideal {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--color-text-muted);
+}
+
+.compact .prev,
+.compact .ideal {
+  font-size: var(--text-hint);
+}
+
+.compact .now {
+  font-size: var(--text-button);
+}
+
+.head {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  color: var(--color-text-muted);
+}
+
+.headNow {
+  color: var(--color-text);
+}
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

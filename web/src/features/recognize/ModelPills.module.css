@@ -1,0 +1,38 @@
+.pills {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* The pill looks 36px high; the hit area is the full 44px. */
+.pill {
+  position: relative;
+  height: var(--size-pill);
+  margin: 0;
+  padding: 0 16px;
+  border: 1px solid var(--color-surface-4);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-small);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.pill::after {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
+}
+
+.on {
+  border-color: transparent;
+  background: var(--color-selected);
+  color: var(--color-text);
+}
+
+.pill:disabled {
+  cursor: default;
+}

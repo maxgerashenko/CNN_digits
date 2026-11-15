@@ -1,0 +1,78 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.heading {
+  margin: 0;
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  padding: 12px var(--space-card);
+}
+
+.shape {
+  flex: 0 0 124px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 40%;
+}
+
+.range {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: var(--text-tiny);
+  color: var(--color-text-muted);
+}
+
+.text {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ideal {
+  font-size: var(--text-hint);
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+
+.caption {
+  margin: 0;
+  padding: 0 var(--space-card);
+  font-size: var(--text-small);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}

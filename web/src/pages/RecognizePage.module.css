@@ -1,0 +1,10 @@
+/* Pad column: as wide as the window height allows (282 = header 72 + bottom 26
+   + pills 36 + two gaps 28 + result card at least 120). */
+.padColumn {
+  flex: 0 0 auto;
+  width: clamp(240px, min(40vw, 100dvh - 282px), 520px);
+}
+
+.resultCard {
+  flex: 1 1 auto;
+}

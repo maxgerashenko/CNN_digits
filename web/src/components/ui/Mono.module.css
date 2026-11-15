@@ -1,0 +1,39 @@
+.mono {
+  font-family: var(--font-mono);
+}
+
+.tone-text {
+  color: var(--color-text);
+}
+.tone-muted {
+  color: var(--color-text-muted);
+}
+.tone-dim {
+  color: var(--color-text-dim);
+}
+.tone-accent {
+  color: var(--color-accent-text);
+}
+.tone-ok {
+  color: var(--color-ok);
+}
+.tone-warn {
+  color: var(--color-warn);
+}
+
+.size-tiny {
+  font-size: var(--text-tiny);
+}
+.size-label {
+  font-size: var(--text-label);
+}
+.size-hint {
+  font-size: var(--text-hint);
+}
+.size-small {
+  font-size: var(--text-small);
+}
+.size-button {
+  font-size: var(--text-button);
+  font-weight: 500;
+}

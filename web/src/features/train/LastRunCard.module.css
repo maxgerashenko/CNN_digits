@@ -1,0 +1,10 @@
+.card {
+  flex-shrink: 0;
+}
+
+.result {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--color-text);
+}

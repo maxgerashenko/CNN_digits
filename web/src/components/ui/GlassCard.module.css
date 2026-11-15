@@ -1,0 +1,23 @@
+/* The surface only. Layout inside the card (flex direction, gap) belongs to
+   the component that uses it. */
+.card {
+  min-width: 0;
+  border-radius: var(--radius-card);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+  color: var(--color-text);
+}
+
+.padCard {
+  padding: 14px var(--space-card);
+}
+
+.padRow {
+  padding: 12px var(--space-card);
+}
+
+.padNone {
+  padding: 0;
+}
