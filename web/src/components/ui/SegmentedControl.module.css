@@ -1,0 +1,36 @@
+.track {
+  display: flex;
+  min-width: 0;
+  padding: 2px;
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+}
+
+.segment {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control-inner);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  font-weight: 500;
+}
+
+.selected {
+  background: var(--color-selected);
+  color: var(--color-text);
+}
+
+.sm {
+  border-radius: var(--radius-control-sm);
+}
+
+.sm .segment {
+  height: 30px;
+  border-radius: var(--radius-control-sm-inner);
+  font-size: var(--text-hint);
+}

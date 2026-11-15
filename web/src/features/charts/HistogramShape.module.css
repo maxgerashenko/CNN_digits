@@ -1,0 +1,34 @@
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.axis {
+  stroke: var(--color-surface-3);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.line {
+  stroke: var(--color-text);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.ridge {
+  fill: var(--color-surface-1);
+  stroke: var(--color-text);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.ideal {
+  stroke: var(--color-ideal);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}

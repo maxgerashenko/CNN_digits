@@ -1,0 +1,32 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-tablet-gap);
+  height: var(--size-header-tablet);
+  padding: 0 var(--space-tablet-x);
+}
+
+.title {
+  font-size: var(--text-title-tablet);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.columns {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-tablet-gap);
+  padding: 0 var(--space-tablet-x) var(--space-tablet-x);
+}

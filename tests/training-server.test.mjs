@@ -1,4 +1,4 @@
-// Tests for docs/js/training-server.js. Run from the repo root:
+// Tests for web/src/api/training-server.js. Run from the repo root:
 //   node --test tests/training-server.test.mjs
 
 import assert from "node:assert/strict";
@@ -8,7 +8,7 @@ import {
   STATUS_TEXT,
   ServerUnreachableError,
   createTrainingServer,
-} from "../docs/js/training-server.js";
+} from "../web/src/api/training-server.js";
 
 // A fake clock: timers run instantly, in order, and move "now" forward.
 function fakeClock() {

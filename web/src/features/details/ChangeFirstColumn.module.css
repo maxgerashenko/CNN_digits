@@ -1,0 +1,13 @@
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.summary {
+  flex-shrink: 0;
+  font-size: var(--text-small);
+}
