@@ -1,5 +1,5 @@
 {
-  "name": "Digit recognizer",
+  "name": "CNN Digit AI",
   "short_name": "Digits",
   "description": "Draw a digit and see how a small convolutional network reads it. Retrain the network with your own settings.",
   "start_url": ".",

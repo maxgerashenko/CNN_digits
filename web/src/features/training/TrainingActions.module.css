@@ -3,3 +3,11 @@
   flex-direction: column;
   gap: 6px;
 }
+
+.note {
+  margin: 0;
+  text-align: center;
+  font-size: var(--text-hint);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}

@@ -10,8 +10,8 @@ export interface FeatureBlockSectionProps {
   maps: FeatureMapSet | null;
   /** The step number shown before the name: "02". */
   step: string;
-  /** 'screen' = phone and pane (separators, 15 px title). 'card' = tablet card (denser). */
-  variant?: 'screen' | 'card';
+  /** 'screen' = pane (separators, 15 px title). 'card' = tablet card (denser). 'panel' = its own glass panel (phone). */
+  variant?: 'screen' | 'card' | 'panel';
   className?: string;
 }
 

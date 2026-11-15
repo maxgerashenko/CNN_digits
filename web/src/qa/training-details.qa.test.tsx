@@ -1,4 +1,4 @@
-// QA tests for the Training-in-progress screen (P6) and the Run details
+// QA tests for the Training-in-progress screen (P6) and the Analysis
 // screen (P7, P8). Written by the tester; they check acceptance points that
 // the package tests do not cover.
 
@@ -301,11 +301,12 @@ describe('QA: CurveGuide', () => {
 
 describe('QA: TrainingActions', () => {
   it.each(['idle', 'waking', 'queued', 'running', 'finishing', 'error', 'stopped'] as TrainingPhase[])(
-    '"Use my retrained model" is disabled in phase %s',
+    '"Use trained model" is not offered in phase %s',
     (phase) => {
       setTraining({ phase, jobSettings: settings2, error: phase === 'error' ? 'x' : null });
       at(<TrainingActions />);
-      expect(screen.getByRole('button', { name: 'Use my retrained model' })).toBeDisabled();
+      expect(screen.queryByRole('button', { name: 'Use trained model' })).toBeNull();
+      expect(screen.queryByRole('link', { name: 'Analyze' })).toBeNull();
     },
   );
 
@@ -343,7 +344,9 @@ describe('QA: TrainingActions', () => {
     setTraining({ phase: 'done', jobSettings: settings2 });
     at(<TrainingActions />);
     expect(screen.queryByRole('button', { name: 'Stop training' })).toBeNull();
-    expect(screen.getByRole('link', { name: 'Back to settings' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Back to settings' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Use trained model' })).toBeEnabled();
+    expect(screen.getByRole('link', { name: 'Analyze' })).toHaveAttribute('href', '/train/details');
   });
 });
 
@@ -368,7 +371,8 @@ describe('QA: TrainingScreen', () => {
     expect(screen.getByText('Epoch 5 / 5')).toBeInTheDocument();
     const charts = screen.getAllByRole('img');
     expect(charts.some((c) => /5 of 5 epochs so far, latest 98.0%/.test(c.getAttribute('aria-label') ?? ''))).toBe(true);
-    expect(screen.getByRole('link', { name: /All metrics/ })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /All metrics/ })).toBeNull();
+    expect(screen.getByRole('region', { name: 'Raw charts' })).toBeInTheDocument();
   });
 
   it('a finished 5-epoch run keeps the screen whole in a pane (no All metrics link)', () => {
@@ -474,25 +478,44 @@ describe('QA: not measured list', () => {
 // ---------------------------------------------------------------------------
 
 describe('QA: retrain footer', () => {
-  it('with no runs and a server, the button reads "Start training" and starts with the form settings', async () => {
+  it('phone, no runs: the button reads "Change settings" and opens the settings without starting a run', async () => {
     configureReady();
     renderApp({ route: '/train/details' });
     expect(screen.getByText('No runs yet')).toBeInTheDocument();
-    const button = screen.getByRole('button', { name: 'Start training' });
-    await userEvent.click(button);
+    await userEvent.click(screen.getByRole('link', { name: 'Change settings' }));
     expect(useSettingsStore.getState().settings).toEqual(settingsWith());
-    expect(useTrainingStore.getState().phase).toBe('waking');
-    expect(screen.getByText('Server is starting, about 1 minute')).toBeInTheDocument();
+    expect(useTrainingStore.getState().phase).toBe('idle');
+    expect(screen.getByRole('heading', { level: 1, name: 'Train' })).toBeInTheDocument();
   });
 
-  it('"Retrain with Epochs 4" puts Epochs 4 into the form and starts a run', async () => {
+  it('phone: "Retrain with Epochs 4" puts Epochs 4 into the form and opens the settings', async () => {
     configureReady();
     setRuns([runOne]);
     renderApp({ route: '/train/details' });
+    await userEvent.click(screen.getByRole('link', { name: 'Retrain with Epochs 4' }));
+    expect(useSettingsStore.getState().settings.epochs).toBe(4);
+    expect(useTrainingStore.getState().phase).toBe('idle');
+    expect(screen.getByRole('heading', { level: 1, name: 'Train' })).toBeInTheDocument();
+  });
+
+  it('desktop pane: "Retrain with Epochs 4" puts Epochs 4 into the form and starts a run', async () => {
+    configureReady();
+    setRuns([runOne]);
+    renderApp({ route: '/train', mode: 'desktop' });
     await userEvent.click(screen.getByRole('button', { name: 'Retrain with Epochs 4' }));
     expect(useSettingsStore.getState().settings.epochs).toBe(4);
     expect(useTrainingStore.getState().jobSettings?.epochs).toBe(4);
     expect(useTrainingStore.getState().phase).toBe('waking');
+  });
+
+  it('"Use trained model" shows once a trained model is ready, above Retrain', () => {
+    setRuns([runOne]);
+    renderApp({ route: '/train/details' });
+    expect(screen.queryByRole('button', { name: 'Use trained model' })).toBeNull();
+    act(() => useModelStore.setState((state) => ({ retrained: { ...state.retrained, status: 'ready' } })));
+    const use = screen.getByRole('button', { name: 'Use trained model' });
+    const retrain = screen.getByRole('link', { name: 'Retrain with Epochs 4' });
+    expect(use.compareDocumentPosition(retrain) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('while a run is in progress it reads "Training, view progress" and links to the run', () => {
@@ -504,18 +527,19 @@ describe('QA: retrain footer', () => {
     expect(screen.getByRole('link', { name: 'Training, view progress' })).toHaveAttribute('href', '/train/run');
   });
 
-  it('without a server address it is disabled and says training is not set up', () => {
+  it('desktop pane: without a server address it is disabled and says training is not set up', () => {
     setRuns([runOne]);
-    renderApp({ route: '/train/details' });
+    renderApp({ route: '/train', mode: 'desktop' });
     expect(screen.getByRole('button', { name: 'Retrain with Epochs 4' })).toBeDisabled();
-    expect(screen.getByText(NOT_CONFIGURED_TEXT)).toBeInTheDocument();
+    const pane = screen.getByRole('region', { name: 'Analysis' });
+    expect(within(pane).getByText(NOT_CONFIGURED_TEXT)).toBeInTheDocument();
   });
 
-  it('a run that passes every check gives "Start training" and the Nothing to change first state', () => {
+  it('a run that passes every check gives "Change settings" and the Nothing to change first state', () => {
     configureReady();
     setRuns([runOne, goodRun]);
     renderApp({ route: '/train/details' });
-    expect(screen.getByRole('button', { name: 'Start training' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Change settings' })).toHaveAttribute('href', '/train');
     expect(screen.getByRole('heading', { name: 'Change first' })).toBeInTheDocument();
     expect(screen.getByText('Nothing to change first')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^Set / })).toBeNull();

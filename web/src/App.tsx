@@ -4,7 +4,6 @@ import { HashRouter, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/shell';
 import { ChartsPage } from './pages/ChartsPage';
 import { DetailsPage } from './pages/DetailsPage';
-import { InsidePage } from './pages/InsidePage';
 import { RecognizePage } from './pages/RecognizePage';
 import { TrainingPage } from './pages/TrainingPage';
 import { TrainPage } from './pages/TrainPage';
@@ -19,7 +18,6 @@ export function AppRoutes() {
     <Routes>
       <Route element={<AppShell />}>
         <Route path={ROUTES.recognize} element={<RecognizePage />} />
-        <Route path={ROUTES.inside} element={<InsidePage />} />
         <Route path={ROUTES.train} element={<TrainPage />} />
         <Route path={ROUTES.training} element={<TrainingPage />} />
         <Route path={ROUTES.details} element={<DetailsPage />} />
@@ -30,7 +28,7 @@ export function AppRoutes() {
   );
 }
 
-/** Start-up: load the saved model, wake the training server, follow drawing and model. */
+/** Start-up: load the app model, wake the training server, follow drawing and model. */
 export function useStartUp() {
   useEffect(() => {
     void useModelStore.getState().loadSaved();

@@ -1,7 +1,10 @@
+import { useState } from 'react';
+
 import { Screen } from '../../components/shell';
-import { EmptyState, Legend, NavRow, type LegendItem } from '../../components/ui';
-import { useRunChecks } from '../../hooks/useRunChecks';
+import { EmptyState, Legend, type LegendItem } from '../../components/ui';
+import { useLayoutMode } from '../../hooks/useLayoutMode';
 import { useInPane } from '../../hooks/usePane';
+import { useRunChecks } from '../../hooks/useRunChecks';
 import { ROUTES } from '../../routes';
 import { BucketList } from './BucketList';
 import { ChangeFirstList } from './ChangeFirstList';
@@ -13,10 +16,17 @@ export interface DetailsScreenProps {
   className?: string;
 }
 
-/** Run details: the summary table, what changed, the change-first cards and the other settings. */
+/** The run table turns short after the screen is scrolled this far, in px, and back above the second value. */
+const SHRINK_AFTER = 48;
+const GROW_BEFORE = 36;
+
+/** Analysis (its buttons stay at the bottom): the summary table (it stays at the top on a phone), what changed, the change-first cards and the other settings. */
 export function DetailsScreen({ className }: DetailsScreenProps) {
   const { run, prev, checks } = useRunChecks();
   const inPane = useInPane();
+  const phone = useLayoutMode() === 'phone' && !inPane;
+  // Phone: once the screen is scrolled, the run table shows its short version.
+  const [scrolled, setScrolled] = useState(false);
 
   const legend: LegendItem[] = [
     ...(prev ? [{ label: `run ${prev.number}`, line: 'accent' as const }] : []),
@@ -26,15 +36,25 @@ export function DetailsScreen({ className }: DetailsScreenProps) {
 
   return (
     <Screen
-      title="Run details"
+      title="Analysis"
       variant="pushed"
       backTo={ROUTES.train}
       backLabel="Back to settings"
       className={className}
+      pinTitle
+      pinnedReserve
+      footer={<RetrainFooter />}
+      onScrollTop={(top) => setScrolled((was) => (was ? top >= GROW_BEFORE : top > SHRINK_AFTER))}
+      pinned={
+        !run ? undefined : !phone ? (
+          <RunSummaryTable />
+        ) : (
+          <RunSummaryTable variant="panel" short={scrolled} />
+        )
+      }
     >
       {run ? (
         <>
-          <RunSummaryTable />
           <ChangedSinceCard />
           <Legend items={legend} />
           <ChangeFirstList />
@@ -47,14 +67,6 @@ export function DetailsScreen({ className }: DetailsScreenProps) {
           Train a network once. Then this screen compares the run with the ideal and says what to change first.
         </EmptyState>
       )}
-      {!inPane && (
-        <NavRow
-          to={ROUTES.charts}
-          title="Raw charts"
-          subtitle="Curves, per digit, confusion matrix, histograms, gradients"
-        />
-      )}
-      <RetrainFooter />
     </Screen>
   );
 }

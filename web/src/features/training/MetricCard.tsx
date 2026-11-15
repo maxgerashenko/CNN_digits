@@ -9,7 +9,16 @@ import styles from './MetricCard.module.css';
 export interface MetricCardProps {
   className?: string;
   metric: 'accuracy' | 'loss';
+  /**
+   * The short version, for the card that stays at the top of the phone screen
+   * once it is scrolled: smaller numbers, a lower chart, no note under it.
+   */
+  small?: boolean;
 }
+
+/** Height of the chart in px, and of the chart in the short version (0.6 of it). */
+const CHART_HEIGHT = 96;
+const CHART_HEIGHT_SMALL = Math.round(CHART_HEIGHT * 0.6);
 
 const COPY = {
   accuracy: { label: 'Accuracy', hint: 'Should climb fast, then flatten just under the goal line.' },
@@ -29,7 +38,7 @@ export function verdictFor(metric: 'accuracy' | 'loss', values: readonly number[
 }
 
 /** Latest accuracy or loss (on the test images), the goal, and the curve so far. */
-export function MetricCard({ className, metric }: MetricCardProps) {
+export function MetricCard({ className, metric, small = false }: MetricCardProps) {
   const epochs = useTrainingStore((s) => s.epochs);
   const jobSettings = useTrainingStore((s) => s.jobSettings);
 
@@ -73,7 +82,7 @@ export function MetricCard({ className, metric }: MetricCardProps) {
       : `${COPY[metric].label} per epoch: ${values.length} of ${total} epochs so far, latest ${valueText}`;
 
   return (
-    <GlassCard className={cx(styles.card, className)} aria-label={COPY[metric].label}>
+    <GlassCard className={cx(styles.card, small && styles.small, className)} aria-label={COPY[metric].label}>
       <div className={styles.head}>
         <div className={styles.value}>
           <span className={styles.label}>{COPY[metric].label}</span>
@@ -86,6 +95,7 @@ export function MetricCard({ className, metric }: MetricCardProps) {
       </div>
       <LineChart
         className={styles.chart}
+        height={small ? CHART_HEIGHT_SMALL : CHART_HEIGHT}
         label={label}
         xDomain={[0, Math.max(total, 1)]}
         yDomain={yDomain}
@@ -97,7 +107,7 @@ export function MetricCard({ className, metric }: MetricCardProps) {
           { id: 'now', tone: 'now', points: epochSeries(values), endDot: true },
         ]}
       />
-      <div className={styles.hint}>
+      <div className={styles.hint} inert={small}>
         {verdict && (
           <Mono className={styles.verdict} tone={verdict === 'on track' ? 'ok' : 'warn'}>
             {verdict}

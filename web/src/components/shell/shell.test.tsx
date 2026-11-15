@@ -16,25 +16,27 @@ function Where() {
 
 beforeEach(() => resetStores());
 
-describe('tab bar', () => {
-  it('shows on root screens in phone mode', () => {
+describe('phone navigation', () => {
+  it('has no tab bar; Recognize leads on with its Train button', () => {
     renderApp({ route: '/', mode: 'phone' });
-    expect(screen.getByRole('navigation', { name: 'Mode' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Recognize' })).toHaveAttribute('aria-current', 'page');
-  });
-
-  it('marks Train for every /train address', () => {
-    renderApp({ route: '/train', mode: 'phone' });
-    expect(screen.getByRole('link', { name: 'Train' })).toHaveAttribute('aria-current', 'page');
-  });
-
-  it('is absent on pushed screens, with a back link to the parent', () => {
-    renderApp({ route: '/inside', mode: 'phone' });
     expect(screen.queryByRole('navigation', { name: 'Mode' })).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Back to drawing' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Train' })).toHaveAttribute('href', '/train');
+    expect(screen.queryByRole('link', { name: /^Back/ })).not.toBeInTheDocument();
   });
 
-  it('is absent on pushed screens: details goes back to Train', () => {
+  it('Train goes back to Recognize', () => {
+    renderApp({ route: '/train', mode: 'phone' });
+    expect(screen.queryByRole('navigation', { name: 'Mode' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Back to Recognize' })).toHaveAttribute('href', '/');
+  });
+
+  it('the old How it was read address shows Recognize', async () => {
+    renderApp({ route: '/inside', mode: 'phone' });
+    await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: 'CNN Digit AI' })).toBeInTheDocument());
+    expect(screen.getByRole('heading', { level: 2, name: 'How it was read' })).toBeInTheDocument();
+  });
+
+  it('Analysis goes back to Train', () => {
     renderApp({ route: '/train/details', mode: 'phone' });
     expect(screen.getByRole('link', { name: 'Back to settings' })).toHaveAttribute('href', '/train');
   });
@@ -48,8 +50,9 @@ describe('rail', () => {
       unmount();
     }
     renderApp({ route: '/', mode: 'desktop' });
-    expect(within(screen.getByRole('complementary')).getByText('Saved model')).toBeInTheDocument();
+    expect(within(screen.getByRole('complementary')).getByText('App model')).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Mode' })).toBeInTheDocument();
+    expect(within(screen.getByRole('complementary')).getByRole('heading', { name: 'CNN Digit AI' })).toBeInTheDocument();
   });
 });
 
@@ -68,7 +71,7 @@ describe('Pane', () => {
         <MemoryRouter>
           <Panes>
             <Pane label="Details">
-              <Screen title="Run details" variant="pushed" backTo="/train" backLabel="Back">
+              <Screen title="Analysis" variant="pushed" backTo="/train" backLabel="Back">
                 <p>body</p>
               </Screen>
             </Pane>

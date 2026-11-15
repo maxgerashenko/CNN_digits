@@ -33,3 +33,21 @@
 .error {
   color: var(--color-warn);
 }
+
+/* The legend folds away slowly and comes back fast, like the Result card.
+   The negative margin takes back the gap above it. */
+.legend {
+  max-height: 40px;
+  overflow: hidden;
+  transition:
+    max-height 80ms ease-out,
+    margin 80ms ease-out,
+    opacity 80ms ease-out;
+}
+
+.legendHidden {
+  max-height: 0;
+  margin-top: -16px;
+  opacity: 0;
+  transition-duration: 300ms;
+}

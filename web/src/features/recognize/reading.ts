@@ -37,7 +37,7 @@ export function noModelTitle(modelStatus: Reading['modelStatus']): string {
 
 /** The sentence for a model that cannot read: loading, missing or failed. */
 export function noModelText(modelStatus: Reading['modelStatus']): string {
-  if (modelStatus === 'missing') return 'The saved model is not added yet, so there is nothing to show.';
+  if (modelStatus === 'missing') return 'The app model is not added yet, so there is nothing to show.';
   if (modelStatus === 'error') return 'The model could not be loaded, so there is nothing to show.';
   return 'The model is loading.';
 }

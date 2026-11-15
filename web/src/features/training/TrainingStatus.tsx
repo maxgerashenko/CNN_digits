@@ -7,6 +7,8 @@ import styles from './TrainingStatus.module.css';
 
 export interface TrainingStatusProps {
   className?: string;
+  /** Folds the legend away: the short version at the top of a scrolled phone screen. */
+  hideLegend?: boolean;
 }
 
 const LEGEND = [
@@ -16,7 +18,7 @@ const LEGEND = [
 ] as const;
 
 /** Where the run is: phase text, elapsed time, progress by finished epochs, and the legend. */
-export function TrainingStatus({ className }: TrainingStatusProps) {
+export function TrainingStatus({ className, hideLegend = false }: TrainingStatusProps) {
   const phase = useTrainingStore((s) => s.phase);
   const position = useTrainingStore((s) => s.position);
   const epochs = useTrainingStore((s) => s.epochs);
@@ -77,7 +79,9 @@ export function TrainingStatus({ className }: TrainingStatusProps) {
         </div>
         <ProgressBar label="Training progress" value={value} />
       </section>
-      <Legend items={LEGEND} />
+      <div className={cx(styles.legend, hideLegend && styles.legendHidden)} inert={hideLegend}>
+        <Legend items={LEGEND} />
+      </div>
     </div>
   );
 }

@@ -129,7 +129,22 @@ describe('evaluateChecks for a run that fails and passes', () => {
 });
 
 describe('unmeasured checks', () => {
-  it('batch norm and batch size are never measured, with a reason', () => {
+  it('batch norm is measured when the run has gradient sizes', () => {
+    const withGradients = (gradients: Record<string, number>, batchNorm = true) => {
+      const run = goodRun({ settings: settingsWith({ batch_norm: batchNorm }) });
+      run.epochs = run.epochs.map((epoch) => ({ ...epoch, gradients }));
+      return checkOf(evaluateChecks({ run, settings: run.settings }), 'batch_norm');
+    };
+    expect(withGradients({ 'conv 1': 0.02, output: 0.1 }).status).toBe('ok');
+    expect(withGradients({ 'conv 1': 0.02, output: 0.1 }).lastText).toBe('steady');
+    expect(withGradients({ 'conv 1': 1e-6, output: 0.1 }).status).toBe('improve');
+    expect(withGradients({ 'conv 1': 1e-6, output: 0.1 }).lastText).toBe('vanishing');
+    // With batch norm already on there is nothing to switch.
+    expect(withGradients({ 'conv 1': 0.02, output: 50 }).next).toBeNull();
+    expect(withGradients({ 'conv 1': 0.02, output: 50 }, false).next).toBe(true);
+  });
+
+  it('batch norm (without gradient sizes) and batch size are not measured, with a reason', () => {
     const checks = evaluateChecks({ run: goodRun(), settings: DEFAULT_SETTINGS });
     for (const key of ['batch_norm', 'batch_size'] as const) {
       expect(checkOf(checks, key).status).toBe('unmeasured');

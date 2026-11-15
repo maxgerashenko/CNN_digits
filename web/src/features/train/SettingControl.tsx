@@ -8,10 +8,12 @@ export interface SettingControlProps {
   size?: 'md' | 'sm';
   /** Shows the smallest and largest value at the ends of a slider. */
   showEnds?: boolean;
+  /** A slider value to mark as optimal. */
+  mark?: number;
 }
 
 /** The control named in the spec, wired to the settings store. */
-export function SettingControl({ spec, size = 'md', showEnds = false }: SettingControlProps) {
+export function SettingControl({ spec, size = 'md', showEnds = false, mark }: SettingControlProps) {
   const value = useSettingsStore((state) => state.settings[spec.key]) as SettingValue;
   const setSetting = useSettingsStore((state) => state.setSetting) as (key: SettingKey, value: SettingValue) => void;
   const set = (next: SettingValue) => setSetting(spec.key, next);
@@ -41,6 +43,7 @@ export function SettingControl({ spec, size = 'md', showEnds = false }: SettingC
           step={spec.step!}
           onChange={set}
           showEnds={showEnds}
+          mark={mark}
           size={size}
         />
       );

@@ -9,6 +9,7 @@
 import { SAVED_MODEL_FACTS } from '../config';
 import type { RunRecord, SettingKey, SettingValue, Settings } from '../types';
 import { formatAccuracy, formatInt, formatLoss, formatPercent, formatPoints, formatSeconds } from './format';
+import { gradientVerdict, lastGradients } from './gradients';
 import { SETTING_KEYS, diffSettings, formatSetting, getSettingSpec } from './settings';
 
 /** The thresholds in the design's "ideal" texts. */
@@ -397,8 +398,16 @@ const CHECK_SPECS: Record<SettingKey, CheckSpec> = {
     metric: 'gradient norm',
     idealText: 'steady',
     shape: 'flat',
-    verdict: () => ({ ok: null, text: null, reason: 'The training server does not send gradient sizes.' }),
-    suggest: () => null,
+    verdict: (run) => {
+      const gradients = lastGradients(run);
+      if (!gradients) return { ok: null, text: null, reason: 'The training server does not send gradient sizes.' };
+      const verdicts = Object.values(gradients).map(gradientVerdict);
+      if (verdicts.includes('exploding')) return { ok: false, text: 'exploding' };
+      if (verdicts.includes('vanishing')) return { ok: false, text: 'vanishing' };
+      return { ok: true, text: 'steady' };
+    },
+    // Batch norm keeps the gradients in range, so it is the thing to turn on when they are not.
+    suggest: (settings) => (settings.batch_norm ? null : { action: 'switch', next: true }),
   },
   batch_size: {
     key: 'batch_size',

@@ -202,8 +202,14 @@ def test_short_training_run_reports_results():
     assert [p["epoch"] for p in seen] == [1, 2]
     assert seen == results["history"]
     assert set(seen[0]) == {
-        "epoch", "epochs", "loss", "accuracy", "val_loss", "val_accuracy", "seconds",
+        "epoch", "epochs", "loss", "accuracy", "val_loss", "val_accuracy", "gradients", "seconds",
     }
+    assert list(seen[0]["gradients"]) == ["conv 1", "dense 1", "output"]
+    assert all(size > 0 for size in seen[0]["gradients"].values())
+    confusion = results["confusion"]
+    assert len(confusion) == 10 and all(len(row) == 10 for row in confusion)
+    assert sum(map(sum, confusion)) == 10000
+    assert sum(confusion[d][d] for d in range(10)) == 10000 - results["mistakes"]
     assert results["test_images"] == 10000
     assert results["mistakes"] == round((1 - results["test_accuracy"]) * 10000)
     assert results["test_accuracy"] > 0.8

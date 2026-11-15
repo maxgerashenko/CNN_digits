@@ -1,8 +1,10 @@
 import { redirectFor, ROUTES, tabFor } from './routes';
 
 describe('redirectFor', () => {
-  it('keeps every screen on the phone', () => {
-    for (const path of Object.values(ROUTES)) expect(redirectFor(path, 'phone')).toBeNull();
+  it('keeps every screen on the phone, except How it was read, which is part of Recognize', () => {
+    for (const path of Object.values(ROUTES)) {
+      expect(redirectFor(path, 'phone')).toBe(path === ROUTES.inside ? ROUTES.recognize : null);
+    }
   });
 
   it.each([

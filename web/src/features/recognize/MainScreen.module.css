@@ -1,0 +1,59 @@
+/* Phone only. The pad is as wide as the column, and smaller on a low window
+   so that the pad, the Result card and the Train button fit without a scroll. */
+.screen {
+  --pad: min(100vw - 2 * var(--space-page-x), var(--size-column-max) - 2 * var(--space-page-x), max(200px, 100dvh - 460px));
+  /* Pills, pad, large Result card, the gaps between them and the padding. */
+  --pinned-large: calc(var(--space-page-top) + var(--size-pill) + var(--pad) + 192px + 2 * var(--screen-gap) + 10px);
+  --pinned-small: calc(var(--pinned-large) - 96px);
+}
+
+/* The box keeps the height of the large card, so the blocks below do not
+   jump when the card turns small. They show in the room the small card frees. */
+.pinned {
+  height: var(--pinned-large);
+}
+
+.pad {
+  width: var(--pad);
+  align-self: center;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.heading {
+  font-size: var(--text-kpi);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.summary {
+  font-size: var(--text-small);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+/* A scroll that ends near a panel stops with the whole panel under the small Result card. */
+.panel {
+  scroll-snap-align: start;
+  scroll-margin-top: calc(var(--pinned-small) + 2px);
+}
+
+/* The last panel with the room under it is as high as the window below the
+   small Result card. The screen then ends exactly at the panel's snap point,
+   so reaching the end of the scroll never makes the panel jump. */
+.last {
+  min-height: calc(100dvh - var(--pinned-small) - 2px - var(--screen-gap));
+}
+
+.note {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: var(--text-hint);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}

@@ -49,14 +49,14 @@ describe('DrawingPad', () => {
 });
 
 describe('ModelPills', () => {
-  it('disables My retrained until one exists, then switches', () => {
+  it('disables My trained until one exists, then switches', () => {
     ui(<ModelPills />);
-    expect(screen.getByRole('button', { name: 'My retrained' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Saved model' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'My trained' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'App model' })).toHaveAttribute('aria-pressed', 'true');
     act(() => useModelStore.getState().setRetrained(makeFakeModel(), 'run-1'));
-    fireEvent.click(screen.getByRole('button', { name: 'My retrained' }));
+    fireEvent.click(screen.getByRole('button', { name: 'My trained' }));
     expect(useModelStore.getState().active).toBe('retrained');
-    expect(screen.getByRole('button', { name: 'My retrained' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'My trained' })).toHaveAttribute('aria-pressed', 'true');
   });
 });
 
@@ -64,7 +64,7 @@ describe('ResultCard', () => {
   it('says the saved model is missing', () => {
     useModelStore.setState({ saved: { status: 'missing', model: null, error: null } });
     ui(<ResultCard variant="bars" />);
-    expect(screen.getByText(/saved model is not added yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/app model is not added yet/i)).toBeInTheDocument();
   });
 
   it('shows the error sentence', () => {
@@ -98,11 +98,39 @@ describe('ResultCard', () => {
 });
 
 describe('MainScreen', () => {
-  it('links to How it was read on the phone, not in a pane', () => {
+  it('shows How it was read and the Train button on the phone, not in a pane', () => {
     const { unmount } = ui(<MainScreen />);
-    expect(screen.getByRole('link', { name: /How it was read/ })).toHaveAttribute('href', '/inside');
+    expect(screen.getByRole('heading', { level: 1, name: 'CNN Digit AI' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'How it was read' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Train' })).toHaveAttribute('href', '/train');
+    expect(screen.getByText('Get your own model for recognition.')).toBeInTheDocument();
     unmount();
     ui(<MainScreen />, true);
-    expect(screen.queryByRole('link', { name: /How it was read/ })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'How it was read' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Train' })).toBeNull();
+  });
+});
+
+describe('MainScreen on a scrolled phone', () => {
+  it('turns the Result card small past 48px, large again under 36px, and hides the Train button meanwhile', () => {
+    const { container } = ui(<MainScreen />);
+    const scroller = container.querySelector('[class*="phone"]') as HTMLElement;
+    const card = screen.getByRole('region', { name: 'Result' });
+    const scrollTo = (top: number) => {
+      scroller.scrollTop = top;
+      fireEvent.scroll(scroller);
+    };
+    expect(card.className).not.toMatch(/small/);
+    scrollTo(48);
+    expect(card.className).not.toMatch(/small/);
+    scrollTo(49);
+    expect(card.className).toMatch(/small/);
+    // The slid-out button cannot be reached: its footer is inert.
+    expect(screen.getByText('Train', { selector: 'a' }).closest('[inert]')).not.toBeNull();
+    scrollTo(40);
+    expect(card.className).toMatch(/small/);
+    scrollTo(35);
+    expect(card.className).not.toMatch(/small/);
+    expect(screen.getByText('Train', { selector: 'a' }).closest('[inert]')).toBeNull();
   });
 });

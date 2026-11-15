@@ -4,9 +4,70 @@
   gap: 10px;
 }
 
+.top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .heading {
   margin: 0;
   font-size: var(--text-small);
   font-weight: 600;
   color: var(--color-text);
+}
+
+.chart {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  height: 110px;
+  /* Room above the goal line, so the line is not at the very edge. */
+  padding-top: 7px;
+}
+
+/* 100%: where every bar should end. */
+.goal {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 7px;
+  border-top: 1px solid var(--color-accent);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.track {
+  display: flex;
+  align-items: flex-end;
+  flex-grow: 1;
+  width: 100%;
+}
+
+.bar {
+  width: 100%;
+  height: var(--h);
+  /* A digit at the bottom of the range still shows as a thin bar. */
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--color-text-dim);
+}
+
+.weak {
+  background: var(--color-warn);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: 1.45;
+  color: var(--color-text-muted);
 }
