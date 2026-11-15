@@ -7,6 +7,9 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Touch screens: no grey flash on a tap, and no zoom on a double tap. */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 html,
@@ -26,6 +29,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  /* The page does not bounce or pull to refresh when a scroll reaches its end. */
+  overscroll-behavior-y: none;
 }
 
 h1,
