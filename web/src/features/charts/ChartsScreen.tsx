@@ -43,8 +43,8 @@ export function ChartsScreen({ className }: ChartsScreenProps) {
           <CurveCard metric="loss" run={run} status={statusOf('learning_rate')} />
           <PerDigitCard />
           <ConfusionCard />
-          <KernelWeightsCard />
-          <HistogramsCard />
+          <KernelWeightsCard run={run} />
+          <HistogramsCard run={run} />
           <GradientCard />
         </>
       ) : (

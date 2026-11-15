@@ -1,28 +1,22 @@
-import { ListCard, ListRow, Mono, SectionHeading, type Tone } from '../../components/ui';
-import { checksInBucket, type CheckBucket, type CheckResult } from '../../lib/checks';
+import { ListCard, ListRow, Mono, SectionHeading } from '../../components/ui';
+import { BUCKET_WORD, checksInBucket, type CheckBucket, type CheckResult } from '../../lib/checks';
 import { cx } from '../../lib/cx';
 import styles from './BucketList.module.css';
 
 type ListedBucket = Exclude<CheckBucket, 'first'>;
 
-const COPY: Record<ListedBucket, { title: string; note: string; chip: string; tone: Tone }> = {
+const COPY: Record<ListedBucket, { title: string; note: string }> = {
   later: {
     title: 'Try later',
     note: 'Same metrics as the cards above. Test them after those.',
-    chip: 'later',
-    tone: 'warn',
   },
   keep: {
     title: 'Keep',
     note: 'Already at the ideal. No change needed.',
-    chip: 'keep',
-    tone: 'ok',
   },
   unmeasured: {
     title: 'Not measured',
     note: 'This run holds no number for these checks.',
-    chip: 'not measured',
-    tone: 'muted',
   },
 };
 
@@ -54,8 +48,8 @@ export function BucketList({ bucket, checks, className }: BucketListProps) {
                   : `${check.metricShort} ${check.lastText ?? ''} · ideal ${check.idealShort}`}
               </Mono>
             </span>
-            <Mono tone={copy.tone} className={styles.chip}>
-              {copy.chip}
+            <Mono tone={BUCKET_WORD[bucket].tone} className={styles.chip}>
+              {BUCKET_WORD[bucket].text}
             </Mono>
           </ListRow>
         ))}

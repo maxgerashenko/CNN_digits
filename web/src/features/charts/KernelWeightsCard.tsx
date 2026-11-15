@@ -1,26 +1,26 @@
-import { GlassCard, EmptyState, Mono } from '../../components/ui';
+import { GlassCard, Mono } from '../../components/ui';
 import { cx } from '../../lib/cx';
-import { selectLatestRun, useTrainingStore } from '../../state/trainingStore';
+import type { RunRecord } from '../../types';
 import { HistogramShape } from './HistogramShape';
+import { NoWeights } from './NoWeights';
 import styles from './KernelWeightsCard.module.css';
 
 export interface KernelWeightsCardProps {
+  run: RunRecord;
   className?: string;
 }
 
 const TITLE = 'Kernel weights per layer';
 
 /** One small histogram per layer, worked out in the browser from the retrained model's weights. */
-export function KernelWeightsCard({ className }: KernelWeightsCardProps) {
-  const analysis = useTrainingStore((s) => selectLatestRun(s)?.analysis ?? null);
+export function KernelWeightsCard({ run, className }: KernelWeightsCardProps) {
+  const analysis = run.analysis ?? null;
 
   if (analysis === null || analysis.layers.length === 0) {
     return (
       <GlassCard className={cx(styles.card, className)}>
         <h2 className={styles.heading}>{TITLE}</h2>
-        <EmptyState surface="plain" title="Not measured">
-          The weights of the trained model are not available, so there is nothing to draw yet. Finish a training run first.
-        </EmptyState>
+        <NoWeights />
       </GlassCard>
     );
   }

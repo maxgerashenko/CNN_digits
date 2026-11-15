@@ -13,8 +13,9 @@ Only tensorflow (Keras) and numpy are needed. `tensorflowjs_converter` is not
 used, because it often fails with Keras 3 and with the augmentation layers.
 
 The augmentation layers (RandomRotation, RandomZoom, RandomTranslation, ...)
-only matter while training, so they are left out. Dropout is kept because the
-page shows it in the layer list; TensorFlow.js turns it off when predicting.
+only matter while training, so they are left out. Dropout is kept so the
+exported model has the same layers as the Keras one; TensorFlow.js turns it off
+when predicting.
 
 Use from Python:
 
@@ -23,7 +24,9 @@ Use from Python:
 
 Use from the command line (for the saved model):
 
-    python server/export.py digits_recognition_cnn.keras docs/model
+    python server/export.py digits_recognition_cnn.keras web/public/model
+
+The web app loads the saved model from web/public/model/.
 """
 
 import json

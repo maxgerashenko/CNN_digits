@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { makeFakeModel } from '../test/fixtures';
 import { useDrawingStore } from './drawingStore';
@@ -48,6 +48,24 @@ describe('runInferenceNow', () => {
     useModelStore.getState().setActive('retrained');
     runInferenceNow();
     expect(get().result).not.toEqual(saved);
+  });
+
+  it('drops the old answer when the model throws', () => {
+    const model = makeFakeModel({ digit: 4 });
+    useModelStore.setState({ saved: READY(model) });
+    useDrawingStore.getState().stroke({ x: 10, y: 10 }, { x: 18, y: 18 });
+    runInferenceNow();
+    expect(get().status).toBe('ready');
+
+    model.infer = () => {
+      throw new Error('broken');
+    };
+    const quiet = vi.spyOn(console, 'error').mockImplementation(() => {});
+    useDrawingStore.getState().stroke({ x: 5, y: 5 }, { x: 6, y: 6 });
+    expect(() => runInferenceNow()).not.toThrow();
+    expect(get()).toEqual({ status: 'empty', result: null });
+    expect(quiet).toHaveBeenCalled();
+    quiet.mockRestore();
   });
 });
 

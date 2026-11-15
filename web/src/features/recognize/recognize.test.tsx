@@ -76,7 +76,7 @@ describe('ResultCard', () => {
   it('shows loading', () => {
     useModelStore.setState({ saved: { status: 'loading', model: null, error: null } });
     ui(<ResultCard variant="bars" />);
-    expect(screen.getByText(/loading the model/i)).toBeInTheDocument();
+    expect(screen.getByText('The model is loading.')).toBeInTheDocument();
   });
 
   it('shows no digit on a blank pad', () => {
