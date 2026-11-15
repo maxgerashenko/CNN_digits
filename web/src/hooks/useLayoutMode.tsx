@@ -6,7 +6,7 @@ import { createContext, useContext, useSyncExternalStore, type ReactNode } from 
 import type { LayoutMode } from '../types';
 
 /** Smallest window width, in CSS pixels, of the tablet and the desktop layout. */
-export const BREAKPOINTS = { tablet: 1024, desktop: 1280 } as const;
+export const BREAKPOINTS = { tablet: 1024, desktop: 1200 } as const;
 
 export function layoutModeForWidth(width: number): LayoutMode {
   if (width >= BREAKPOINTS.desktop) return 'desktop';
