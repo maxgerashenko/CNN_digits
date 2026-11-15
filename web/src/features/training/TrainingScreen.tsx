@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { Screen } from '../../components/shell';
 import { EmptyState, Legend } from '../../components/ui';
 import { useLayoutMode } from '../../hooks/useLayoutMode';
@@ -24,6 +26,8 @@ export interface TrainingScreenProps {
 export function TrainingScreen({ className }: TrainingScreenProps) {
   const inPane = useInPane();
   const phone = useLayoutMode() === 'phone' && !inPane;
+  // Phone: once the screen is scrolled, the Accuracy card at the top shows its short version.
+  const [scrolled, setScrolled] = useState(false);
 
   if (!phone) {
     return (
@@ -46,10 +50,12 @@ export function TrainingScreen({ className }: TrainingScreenProps) {
       gap={16}
       className={className}
       pinTitle
+      pinnedReserve
+      onScrollTop={(top) => setScrolled((was) => (was ? top >= 36 : top > 48))}
       pinned={
         <>
-          <TrainingStatus />
-          <MetricCard metric="accuracy" />
+          <TrainingStatus hideLegend={scrolled} />
+          <MetricCard metric="accuracy" small={scrolled} />
         </>
       }
       footer={<TrainingActions />}

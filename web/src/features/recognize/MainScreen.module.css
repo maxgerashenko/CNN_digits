@@ -43,6 +43,13 @@
   scroll-margin-top: calc(var(--pinned-small) + 2px);
 }
 
+/* The last panel with the room under it is as high as the window below the
+   small Result card. The screen then ends exactly at the panel's snap point,
+   so reaching the end of the scroll never makes the panel jump. */
+.last {
+  min-height: calc(100dvh - var(--pinned-small) - 2px - var(--screen-gap));
+}
+
 .note {
   margin: 8px 0 0;
   text-align: center;

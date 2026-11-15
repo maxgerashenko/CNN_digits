@@ -62,6 +62,7 @@ export function MainScreen({ className }: MainScreenProps) {
         </>
       }
       footerHidden={scrolled}
+      footerOverlay
       footer={
         <>
           <PillButton to={ROUTES.train}>Train</PillButton>
@@ -89,15 +90,17 @@ function HowItWasRead() {
         )}
       </div>
       {model ? (
-        blocks.map((block) => (
-          <FeatureBlockSection
-            key={block.index}
-            block={block}
-            maps={result?.maps.find((m) => m.block === block.index) ?? null}
-            step={stepLabel(block.index)}
-            variant="panel"
-            className={styles.panel}
-          />
+        blocks.map((block, i) => (
+          // The last panel gets room below it, so the end of the scroll is its snap point.
+          <div key={block.index} className={i === blocks.length - 1 ? styles.last : undefined}>
+            <FeatureBlockSection
+              block={block}
+              maps={result?.maps.find((m) => m.block === block.index) ?? null}
+              step={stepLabel(block.index)}
+              variant="panel"
+              className={styles.panel}
+            />
+          </div>
         ))
       ) : (
         <EmptyState title="No model">{noModelText(modelStatus)}</EmptyState>

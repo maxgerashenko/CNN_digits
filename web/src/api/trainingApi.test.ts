@@ -101,6 +101,23 @@ describe('converters', () => {
     });
   });
 
+  it('reads the gradient sizes of an epoch and drops what is not a size', () => {
+    expect(toEpochPoint({ ...epochMessage, gradients: { 'conv 1': 0.02, output: 0.1, broken: 'x' } }).gradients).toEqual({
+      'conv 1': 0.02,
+      output: 0.1,
+    });
+    expect(toEpochPoint({ ...epochMessage, gradients: [1, 2] })).not.toHaveProperty('gradients');
+    expect(toEpochPoint(epochMessage)).not.toHaveProperty('gradients');
+  });
+
+  it('reads the confusion table only when it is 10 by 10 counts', () => {
+    const table = Array.from({ length: 10 }, (_, row) => Array.from({ length: 10 }, (_, column) => (row === column ? 1000 : 0)));
+    expect(toRunResults({ ...resultsMessage, confusion: table }).confusion).toEqual(table);
+    expect(toRunResults({ ...resultsMessage, confusion: table.slice(1) })).not.toHaveProperty('confusion');
+    expect(toRunResults({ ...resultsMessage, confusion: 'none' })).not.toHaveProperty('confusion');
+    expect(toRunResults(resultsMessage)).not.toHaveProperty('confusion');
+  });
+
   it('turn a missing number into NaN, not into 0', () => {
     expect(toEpochPoint({}).loss).toBeNaN();
   });

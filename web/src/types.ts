@@ -48,6 +48,11 @@ export interface EpochPoint {
   valAccuracy: number;
   /** Seconds since training started. */
   seconds: number;
+  /**
+   * Size of the loss gradient of each layer after this epoch, by layer name
+   * ('conv 1', ..., 'dense 1', ..., 'output'). Missing when the server does not measure it.
+   */
+  gradients?: Record<string, number>;
 }
 
 /** The numbers the server sends when a run is done. */
@@ -64,6 +69,11 @@ export interface RunResults {
   /** Epochs that finished (can be fewer than asked). */
   epochs: number;
   trainingSeconds: number;
+  /**
+   * 10 rows of 10 counts of test images: row = the digit in the image,
+   * column = the digit the model read. Missing when the server does not send it.
+   */
+  confusion?: number[][];
 }
 
 /** One bar chart of weight values: `bins` are counts scaled so the tallest is 1. */

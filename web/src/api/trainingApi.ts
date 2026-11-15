@@ -91,7 +91,9 @@ const number = (value: unknown): number => (typeof value === 'number' ? value : 
 
 /** An epoch message from the server (snake_case) as an EpochPoint. */
 export function toEpochPoint(raw: Raw): EpochPoint {
+  const gradients = toGradients(raw.gradients);
   return {
+    ...(gradients && { gradients }),
     epoch: number(raw.epoch),
     epochs: number(raw.epochs),
     loss: number(raw.loss),
@@ -102,9 +104,28 @@ export function toEpochPoint(raw: Raw): EpochPoint {
   };
 }
 
+/** Gradient sizes by layer name, or undefined when the server sent none that can be used. */
+function toGradients(raw: unknown): Record<string, number> | undefined {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
+  const sizes: Record<string, number> = {};
+  for (const [name, size] of Object.entries(raw as Raw)) {
+    if (typeof size === 'number' && Number.isFinite(size) && size >= 0) sizes[name] = size;
+  }
+  return Object.keys(sizes).length > 0 ? sizes : undefined;
+}
+
+/** The 10 by 10 table of counts, or undefined when the server sent none or a table of another shape. */
+function toConfusion(raw: unknown): number[][] | undefined {
+  const isCount = (value: unknown) => typeof value === 'number' && Number.isFinite(value) && value >= 0;
+  const isRow = (row: unknown) => Array.isArray(row) && row.length === 10 && row.every(isCount);
+  return Array.isArray(raw) && raw.length === 10 && raw.every(isRow) ? (raw as number[][]) : undefined;
+}
+
 /** The `results` object of a finished run as RunResults. */
 export function toRunResults(raw: Raw): RunResults {
+  const confusion = toConfusion(raw.confusion);
   return {
+    ...(confusion && { confusion }),
     testAccuracy: number(raw.test_accuracy),
     mistakes: number(raw.mistakes),
     testImages: number(raw.test_images),

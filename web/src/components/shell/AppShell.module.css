@@ -3,7 +3,11 @@
   color: var(--color-text);
 }
 
+/* The phone screen scrolls inside itself. The frame never moves: not when a
+   swipe shifts the screen sideways, and not when the browser tries to pan. */
 .phone {
+  height: 100dvh;
+  overflow: hidden;
   background: var(--bg-narrow);
 }
 

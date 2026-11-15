@@ -11,14 +11,16 @@
   gap: 16px;
   padding: var(--space-card);
   overflow: hidden;
-  transition: height 80ms ease-out;
+  transition:
+    height 80ms ease-out,
+    padding 80ms ease-out;
 }
 
 .bars.small {
   height: 96px;
   padding-top: 12px;
   padding-bottom: 12px;
-  transition-duration: 450ms;
+  transition-duration: 300ms;
 }
 
 .side {
@@ -37,7 +39,7 @@
 
 .small .barsDigit {
   font-size: 3.75rem; /* 60px */
-  transition-duration: 450ms;
+  transition-duration: 300ms;
 }
 
 .meta {

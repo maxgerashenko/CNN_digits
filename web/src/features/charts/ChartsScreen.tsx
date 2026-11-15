@@ -43,11 +43,11 @@ export function ChartCards({ legend, empty }: ChartCardsProps) {
       {legend}
       <CurveCard metric="accuracy" run={run} status={statusOf('train_images')} />
       <CurveCard metric="loss" run={run} status={statusOf('learning_rate')} />
-      <PerDigitCard />
-      <ConfusionCard />
+      <PerDigitCard run={run} />
+      <ConfusionCard run={run} />
       <KernelWeightsCard run={run} />
       <HistogramsCard run={run} />
-      <GradientCard />
+      <GradientCard run={run} />
     </>
   );
 }

@@ -3,8 +3,8 @@ import { useRef } from 'react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
-import { PULL_RELOAD, usePullToReload } from './usePullToReload';
-import { SWIPE_BACK_DISTANCE, SWIPE_FOLLOW_MAX, useSwipeBack } from './useSwipeBack';
+import { PULL_RELOAD, PULL_VISIBLE, usePullToReload } from './usePullToReload';
+import { SWIPE_FOLLOW_MAX, useSwipeBack } from './useSwipeBack';
 
 const at = (x: number, y: number) => ({ touches: [{ clientX: x, clientY: y }] });
 
@@ -29,22 +29,22 @@ function renderSwipe() {
 }
 
 describe('useSwipeBack', () => {
-  it('follows the finger up to 20px and goes back after more than 60px', () => {
+  it('follows the finger up to the stop, and goes back when released there', () => {
     const box = renderSwipe();
     fireEvent.touchStart(box, at(10, 100));
     fireEvent.touchMove(box, at(40, 102));
-    expect(box.style.transform).toBe('translateX(10px)');
-    fireEvent.touchMove(box, at(10 + SWIPE_BACK_DISTANCE + 40, 104));
+    expect(box.style.transform).toBe('translateX(30px)');
+    fireEvent.touchMove(box, at(10 + SWIPE_FOLLOW_MAX + 80, 104));
     expect(box.style.transform).toBe(`translateX(${SWIPE_FOLLOW_MAX}px)`);
     fireEvent.touchEnd(box);
     expect(box.style.transform).toBe('');
     expect(screen.getByTestId('where')).toHaveTextContent('/back');
   });
 
-  it('springs back when released before 60px', () => {
+  it('springs back when released before the stop', () => {
     const box = renderSwipe();
     fireEvent.touchStart(box, at(10, 100));
-    fireEvent.touchMove(box, at(10 + SWIPE_BACK_DISTANCE - 5, 100));
+    fireEvent.touchMove(box, at(10 + SWIPE_FOLLOW_MAX - 5, 100));
     fireEvent.touchEnd(box);
     expect(box.style.transform).toBe('');
     expect(screen.getByTestId('where')).toHaveTextContent('/here');
@@ -72,7 +72,7 @@ function PullBox({ reload }: { reload: () => void }) {
   return (
     <div ref={ref} data-testid="box">
       <div data-no-pull data-testid="pad" />
-      <output data-testid="state">{`${pull.height}|${pull.progress}|${pull.reloading}`}</output>
+      <output data-testid="state">{`${pull.height}|${pull.progress}|${pull.reloading}|${pull.dragging}`}</output>
     </div>
   );
 }
@@ -83,12 +83,12 @@ describe('usePullToReload', () => {
     render(<PullBox reload={reload} />);
     const box = screen.getByTestId('box');
     fireEvent.touchStart(box, at(100, 10));
-    fireEvent.touchMove(box, at(100, 10 + 56));
-    expect(screen.getByTestId('state')).toHaveTextContent('28|0.5|false');
+    fireEvent.touchMove(box, at(100, 10 + PULL_VISIBLE));
+    expect(screen.getByTestId('state')).toHaveTextContent(`${PULL_VISIBLE / 2}|0.5|false|true`);
     fireEvent.touchMove(box, at(100, 10 + 2 * PULL_RELOAD));
     fireEvent.touchEnd(box);
     expect(reload).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId('state')).toHaveTextContent(`${PULL_RELOAD}|1|true`);
+    expect(screen.getByTestId('state')).toHaveTextContent(`${PULL_RELOAD}|1|true|false`);
   });
 
   it('closes when released earlier, and never starts on the drawing pad or when scrolled', () => {
@@ -98,7 +98,7 @@ describe('usePullToReload', () => {
     fireEvent.touchStart(box, at(100, 10));
     fireEvent.touchMove(box, at(100, 10 + 2 * PULL_RELOAD - 10));
     fireEvent.touchEnd(box);
-    expect(screen.getByTestId('state')).toHaveTextContent('0|0|false');
+    expect(screen.getByTestId('state')).toHaveTextContent('0|0|false|false');
 
     const pad = screen.getByTestId('pad');
     fireEvent.touchStart(pad, at(100, 10));

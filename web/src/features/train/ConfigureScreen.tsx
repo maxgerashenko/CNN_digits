@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { Screen } from '../../components/shell';
 import { useLayoutMode } from '../../hooks/useLayoutMode';
 import { useInPane } from '../../hooks/usePane';
@@ -21,6 +23,8 @@ export function ConfigureScreen({ className }: ConfigureScreenProps) {
   const settings = useSettingsStore((state) => state.settings);
   const inPane = useInPane();
   const phone = useLayoutMode() === 'phone' && !inPane;
+  // Phone: once the screen is scrolled, the diagram at the top shows its short version.
+  const [scrolled, setScrolled] = useState(false);
   return (
     <Screen
       title="Train"
@@ -28,7 +32,9 @@ export function ConfigureScreen({ className }: ConfigureScreenProps) {
       backTo={ROUTES.recognize}
       backLabel="Back to Recognize"
       className={className}
-      pinned={<NetworkDiagram settings={settings} sticky={!phone} />}
+      pinnedReserve
+      onScrollTop={(top) => setScrolled((was) => (was ? top >= 36 : top > 48))}
+      pinned={<NetworkDiagram settings={settings} sticky={!phone} compact={phone && scrolled} />}
       footer={<StartTrainingButton hint="Get your own model for recognition." />}
     >
       <DiagramCaption />

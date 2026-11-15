@@ -16,6 +16,12 @@ export interface NetworkDiagramProps {
   className?: string;
   settings: Settings;
   sticky?: boolean;
+  /**
+   * The short version, for the card that stays at the top of the phone screen
+   * once it is scrolled. The drawing and every value that follows the settings
+   * stay; only the fixed names under the drawing fold away.
+   */
+  compact?: boolean;
 }
 
 const COLOR: Record<Tone, string> = {
@@ -27,10 +33,10 @@ const COLOR: Record<Tone, string> = {
 };
 
 /** The network the settings build, drawn as an SVG that scales with its container. */
-export function NetworkDiagram({ className, settings, sticky = false }: NetworkDiagramProps) {
+export function NetworkDiagram({ className, settings, sticky = false, compact = false }: NetworkDiagramProps) {
   const geo = buildNetworkGeometry(settings);
   return (
-    <GlassCard className={cx(styles.card, sticky && styles.sticky, className)} padding="none">
+    <GlassCard className={cx(styles.card, sticky && styles.sticky, compact && styles.compact, className)} padding="none">
       <div className={styles.viz} role="img" aria-label={describeNetwork(settings)}>
         <svg
           className={styles.svg}

@@ -4,9 +4,81 @@
   gap: 10px;
 }
 
+.top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .heading {
   margin: 0;
   font-size: var(--text-small);
   font-weight: 600;
   color: var(--color-text);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.name {
+  flex: 0 0 48px;
+  white-space: nowrap;
+}
+
+.track {
+  position: relative;
+  flex-grow: 1;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--color-bg);
+}
+
+.band {
+  position: absolute;
+  left: var(--band-left);
+  width: var(--band-width);
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed var(--color-ideal);
+  border-right: 1px dashed var(--color-ideal);
+  background: color-mix(in srgb, var(--color-ideal) 14%, transparent);
+}
+
+.dot {
+  position: absolute;
+  left: var(--x);
+  top: 1px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  border-radius: 5px;
+  background: var(--color-text);
+}
+
+.dotOutside {
+  background: var(--color-warn);
+}
+
+/* The labels start where the tracks start: after the layer name and the gap. */
+.axis {
+  display: flex;
+  justify-content: space-between;
+  padding-left: 58px;
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: 1.45;
+  color: var(--color-text-muted);
 }

@@ -27,7 +27,15 @@
   overflow-y: auto;
   overscroll-behavior: none;
   overflow-anchor: none;
+  /* Only up and down scrolling is the browser's; sideways moves belong to the app's swipe. */
+  touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
+  /* No scroll bar: the screen is a phone screen, moved by touch. */
+  scrollbar-width: none;
+}
+
+.phone::-webkit-scrollbar {
+  display: none;
 }
 
 .phone > * {
@@ -36,6 +44,8 @@
 
 .snap {
   scroll-snap-type: y proximity;
+  /* The move to a snap point is animated, not a jump. */
+  scroll-behavior: smooth;
 }
 
 .header {
@@ -86,23 +96,33 @@
   text-decoration: none;
 }
 
-/* Pull to reload: the spinner sits above the title and opens with the pull. */
+/* Pull to reload, as on an iPhone: the screen moves down with the finger and
+   a grey spinner with spokes opens above the title. */
 .pull {
+  /* In front of the pinned blocks and their backdrop. */
+  position: relative;
+  z-index: 5;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   overflow: hidden;
   margin-bottom: calc(-1 * var(--screen-gap));
-  color: var(--color-back);
+  color: var(--color-text-muted);
+}
+
+/* Finger up: the screen slides back, or to the height it keeps while reloading. */
+.pullSettle {
+  transition: height 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .spinner {
   flex-shrink: 0;
-  margin-bottom: 14px;
+  margin-bottom: 6px;
 }
 
+/* The spinner turns one spoke at a time. */
 .spinning {
-  animation: turn 0.8s linear infinite;
+  animation: turn 0.8s steps(8) infinite;
 }
 
 @keyframes turn {
@@ -168,6 +188,40 @@
   transition: transform 220ms ease-out;
 }
 
+/* A footer that takes no room: its content hangs up from the bottom edge. */
+.phone > .footerOverlay {
+  height: 0;
+  padding: 0;
+  background: none;
+}
+
+/* The clip box hides the content once it has slid down, so the slide adds
+   nothing to the scroll length either. */
+.footerOverlayClip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.footerOverlayInner {
+  display: flex;
+  flex-direction: column;
+  padding: 16px var(--space-page-x) max(12px, env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, transparent, var(--color-bg) 45%);
+  transition: transform 220ms ease-out;
+}
+
 .phone > .footerHidden {
+  transform: translateY(100%);
+}
+
+/* The overlay footer has no height of its own, so its content does the sliding. */
+.phone > .footerOverlay.footerHidden {
+  transform: none;
+}
+
+.footerHidden .footerOverlayInner {
   transform: translateY(100%);
 }

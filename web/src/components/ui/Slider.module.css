@@ -8,6 +8,43 @@
   font-size: var(--text-label);
 }
 
+.track {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+}
+
+/* The mark of the optimal value: a short line under the track with its number.
+   The thumb is 16px wide, so the ends of its travel are 8px inside the track. */
+.mark {
+  position: absolute;
+  left: calc(8px + var(--mark-at) * (100% - 16px));
+  bottom: -6px;
+  transform: translateX(-50%);
+  padding-top: 8px;
+  white-space: nowrap;
+  font-size: var(--text-tiny);
+  color: var(--color-text-dim);
+  pointer-events: none;
+}
+
+.mark::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 2px;
+  height: 6px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.markOn {
+  color: var(--color-ok);
+}
+
 .input {
   flex: 1 1 0;
   min-width: 0;

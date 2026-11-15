@@ -10,3 +10,76 @@
   font-weight: 600;
   color: var(--color-text);
 }
+
+.body {
+  display: flex;
+  gap: 8px;
+}
+
+/* Reads from the bottom up, so "0" is at the top row. */
+.side {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: center;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  aspect-ratio: 1 / 1;
+}
+
+.row {
+  display: flex;
+  gap: 2px;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+/* A mistake: the more often, the whiter. */
+.cell {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--color-text) calc(var(--light) * 100%), transparent);
+}
+
+/* A right answer: purple. */
+.diagonal {
+  background: color-mix(in srgb, var(--color-accent) calc(var(--light) * 100%), transparent);
+}
+
+.bottom {
+  text-align: center;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  padding: 4px 8px;
+  border-radius: 14px;
+  background: var(--color-surface-2);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-small);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}

@@ -2,6 +2,9 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  transition:
+    gap 80ms ease-out,
+    padding 80ms ease-out;
 }
 
 .head {
@@ -28,6 +31,7 @@
   line-height: 1;
   font-weight: 300;
   letter-spacing: -0.03em;
+  transition: font-size 80ms ease-out;
 }
 
 .goal {
@@ -40,12 +44,48 @@
 .chart {
   flex: 1 1 auto;
   min-height: 64px;
+  transition: height 80ms ease-out;
 }
 
 .hint {
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  max-height: 80px;
+  overflow: hidden;
+  transition:
+    max-height 80ms ease-out,
+    margin 80ms ease-out,
+    opacity 80ms ease-out;
+}
+
+/* The short version. Like the Result card it shrinks slowly and grows back fast. */
+.small {
+  gap: 6px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.small .chart {
+  min-height: 0;
+}
+
+.small .number {
+  font-size: var(--text-title-tablet);
+}
+
+/* The note folds away; the negative margin takes back the gap above it. */
+.small .hint {
+  max-height: 0;
+  margin-top: -6px;
+  opacity: 0;
+}
+
+.small,
+.small .number,
+.small .chart,
+.small .hint {
+  transition-duration: 300ms;
 }
 
 .verdict {
