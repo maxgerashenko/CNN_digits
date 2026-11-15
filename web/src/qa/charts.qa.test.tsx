@@ -210,7 +210,7 @@ describe('curve cards', () => {
     loadRuns(runOne);
     renderApp({ route: '/train/charts' });
     const acc = cardOf('Accuracy, train vs validation');
-    expect(acc).toHaveTextContent('Here: train 96.5%, validation 97.9%, goal 99.58%.');
+    expect(acc).toHaveTextContent('Here: train 96.5%, validation 97.9%, goal 99.53%.');
     // Validation rose in the last epoch and is still under the goal.
     expect(acc).toHaveTextContent('Still rising, more epochs would help.');
     const loss = cardOf('Loss, train vs validation');
@@ -221,7 +221,7 @@ describe('curve cards', () => {
   it('fills the sentences with the run 2 numbers, not run 1', () => {
     loadRuns(runTwo);
     renderApp({ route: '/train/charts' });
-    expect(cardOf('Accuracy, train vs validation')).toHaveTextContent('Here: train 98.3%, validation 98.6%, goal 99.58%.');
+    expect(cardOf('Accuracy, train vs validation')).toHaveTextContent('Here: train 98.3%, validation 98.6%, goal 99.53%.');
     expect(cardOf('Loss, train vs validation')).toHaveTextContent(
       `Here: train ${formatLoss(0.055)}, validation ${formatLoss(0.048)}.`,
     );
@@ -257,7 +257,7 @@ describe('curve cards', () => {
     loadRuns(one);
     renderApp({ route: '/train/charts' });
     const acc = cardOf('Accuracy, train vs validation');
-    expect(acc).toHaveTextContent('Here: train 90.0%, validation 96.0%, goal 99.58%.');
+    expect(acc).toHaveTextContent('Here: train 90.0%, validation 96.0%, goal 99.53%.');
     expect(acc).not.toHaveTextContent('Still rising');
     expect(cardOf('Loss, train vs validation')).toHaveTextContent('Here: train 0.33, validation 0.14.');
   });
