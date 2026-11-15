@@ -19,12 +19,12 @@
 #   ALLOWED_ORIGINS="https://maxgerashenko.github.io,http://192.168.1.191:5174" \
 #     scripts/mac-server.sh start https://your-name.ngrok-free.dev
 #
-# Up to 3 runs train at the same time; more wait in line. The extra ones start
-# when people queue and close when idle. Change the number with WORKERS (1 to 8).
-# Each needs about 1.5 GB of memory, and Docker Desktop must have that much
-# (Settings > Resources):
+# Two runs can always train at the same time (WARM). When more people queue, a
+# third worker starts, up to WORKERS, and closes again when it is idle. More
+# runs than that wait in line. Each worker needs about 1.5 GB of memory, and
+# Docker Desktop must have that much (Settings > Resources):
 #
-#   WORKERS=1 scripts/mac-server.sh start https://your-name.ngrok-free.dev
+#   WARM=1 WORKERS=4 scripts/mac-server.sh start https://your-name.ngrok-free.dev
 #
 # Needs: Docker Desktop running, and ngrok signed in (ngrok config add-authtoken).
 # The Mac must stay awake with the lid open; this script keeps it awake.
@@ -33,6 +33,7 @@ set -eu
 NAME=cnn-digits-trainer
 PORT=7860
 WORKERS=${WORKERS:-3}
+WARM=${WARM:-2}
 # Memory for the container: 2 GB for the server and 1.5 GB for each run.
 MEMORY_MB=$((2000 + 1500 * WORKERS))
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -54,11 +55,11 @@ case "${1:-}" in
       -p "127.0.0.1:$PORT:$PORT" \
       --cap-drop ALL --security-opt no-new-privileges \
       --memory "${MEMORY_MB}m" --cpus 12 --pids-limit 1024 \
-      -e "TRAIN_WORKERS=$WORKERS" \
+      -e "TRAIN_WORKERS=$WORKERS" -e "TRAIN_WORKERS_WARM=$WARM" \
       ${ALLOWED_ORIGINS:+-e "ALLOWED_ORIGINS=$ALLOWED_ORIGINS"} \
       "$NAME" >/dev/null
     trap stop_server EXIT INT TERM
-    echo "Training server: http://127.0.0.1:$PORT  (public: $URL), up to $WORKERS runs at a time"
+    echo "Training server: http://127.0.0.1:$PORT  (public: $URL), $WARM to $WORKERS runs at a time"
     echo "Press Ctrl+C to stop."
     caffeinate -i ngrok http "$PORT" --url="$URL"
     ;;

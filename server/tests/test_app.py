@@ -17,7 +17,14 @@ from fastapi.testclient import TestClient
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from server.app import Backend, Job, create_app, max_workers_from_env, run_training  # noqa: E402
+from server.app import (  # noqa: E402
+    Backend,
+    Job,
+    create_app,
+    max_workers_from_env,
+    run_training,
+    warm_workers_from_env,
+)
 
 DEFAULTS = {"epochs": 2, "dropout": 0.1, "learning_rate": 0.001}
 
@@ -215,7 +222,7 @@ class ThreadRunner:
         self.closed = True
 
 
-def parallel_client(trainer, max_workers, idle_seconds=60, fail=False):
+def parallel_client(trainer, max_workers, idle_seconds=60, fail=False, warm_workers=1):
     ThreadRunner.made = []
     backend = Backend(train=trainer.train, export=fake_export, default_settings=DEFAULTS, evaluate=fake_evaluate)
     app = create_app(
@@ -223,6 +230,7 @@ def parallel_client(trainer, max_workers, idle_seconds=60, fail=False):
         max_workers=max_workers,
         make_runner=lambda: ThreadRunner(backend, fail=fail),
         idle_seconds=idle_seconds,
+        warm_workers=warm_workers,
     )
     return TestClient(app)
 
@@ -288,6 +296,36 @@ def test_extra_worker_stops_when_it_has_no_work(trainer):
         assert wait_until_finished(c, again["job_id"])["status"] == "done"
 
 
+def test_warm_worker_stays_ready_and_the_others_stop(trainer):
+    with parallel_client(trainer, max_workers=3, idle_seconds=0.05, warm_workers=2) as c:
+        trainer.gate.clear()
+        jobs = [c.post("/train", json={}).json() for _ in range(3)]
+        wait_for(lambda: len(trainer.seen_settings) == 3)
+        trainer.gate.set()
+        for job in jobs:
+            wait_until_finished(c, job["job_id"])
+
+        # Of the two extra workers one stops; the other stays, however long it is idle.
+        wait_for(lambda: sum(runner.closed for runner in ThreadRunner.made) == 1)
+        time.sleep(0.3)
+        assert sum(runner.closed for runner in ThreadRunner.made) == 1
+
+        # Two new runs train together without a new worker being made.
+        trainer.gate.clear()
+        seen = len(trainer.seen_settings)
+        again = [c.post("/train", json={}).json() for _ in range(2)]
+        wait_for(lambda: len(trainer.seen_settings) == seen + 2)
+        assert len(ThreadRunner.made) == 2
+        trainer.gate.set()
+        for job in again:
+            assert wait_until_finished(c, job["job_id"])["status"] == "done"
+
+
+def test_warm_workers_cannot_be_more_than_the_limit(trainer):
+    with parallel_client(trainer, max_workers=2, warm_workers=5) as c:
+        assert c.app.state.manager.warm_workers == 2
+
+
 def test_one_worker_never_starts_an_extra_one(trainer):
     with parallel_client(trainer, max_workers=1) as c:
         trainer.gate.clear()
@@ -324,6 +362,15 @@ def test_train_workers_setting(monkeypatch, value, expected):
     else:
         monkeypatch.setenv("TRAIN_WORKERS", value)
     assert max_workers_from_env() == expected
+
+
+def test_warm_workers_setting(monkeypatch):
+    monkeypatch.delenv("TRAIN_WORKERS_WARM", raising=False)
+    assert warm_workers_from_env() == 1
+    monkeypatch.setenv("TRAIN_WORKERS_WARM", "2")
+    assert warm_workers_from_env() == 2
+    monkeypatch.setenv("TRAIN_WORKERS_WARM", "none")
+    assert warm_workers_from_env() == 1
 
 
 def test_reconnect_only_gets_missed_events(client):
