@@ -69,7 +69,7 @@ export function DrawingPad({ className }: DrawingPadProps) {
   };
 
   return (
-    <div className={cx(styles.wrap, className)}>
+    <div className={cx(styles.wrap, className)} data-no-pull data-no-swipe>
       <div
         ref={surface}
         className={styles.surface}

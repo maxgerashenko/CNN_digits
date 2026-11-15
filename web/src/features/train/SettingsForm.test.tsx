@@ -12,20 +12,15 @@ import { SettingsPanel } from './SettingsPanel';
 beforeEach(() => resetStores());
 
 describe('SettingsPanel', () => {
-  it('hides the Advanced group behind its row', () => {
+  it('shows the Advanced group as the last group, with no row to open it', () => {
     render(<SettingsPanel />);
-    expect(screen.queryByText('Batch size')).toBeNull();
-    const toggle = screen.getByRole('button', { name: /Advanced settings/ });
-    expect(toggle.getAttribute('aria-expanded')).toBe('false');
-    expect(toggle.textContent).toContain('4 more');
-    fireEvent.click(toggle);
-    expect(toggle.getAttribute('aria-expanded')).toBe('true');
-    expect(toggle.textContent).toContain('Hide');
     expect(screen.getByText('Batch size')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Advanced settings/ })).toBeNull();
+    const groups = screen.getAllByRole('region').map((group) => group.getAttribute('aria-label'));
+    expect(groups[groups.length - 1]).toBe('Advanced');
   });
 
-  it('shows all 13 rows once open, each with a check strip marked new before a run', () => {
-    useSettingsStore.getState().setAdvancedOpen(true);
+  it('shows all 13 rows, each with a check strip marked new before a run', () => {
     const { container } = render(<SettingsPanel />);
     expect(container.querySelectorAll('[data-setting]').length).toBe(SETTING_SPECS.length);
     expect(container.querySelectorAll('[data-status="new"]').length).toBe(13);

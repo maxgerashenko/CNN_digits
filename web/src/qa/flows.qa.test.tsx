@@ -60,14 +60,14 @@ beforeEach(() => resetStores());
 describe('every route renders and lands at its address', () => {
   // [route, mode, address after redirects, heading that must be shown (or null when the mode has several)]
   const cases: [string, LayoutMode, string, string | null][] = [
-    ['/', 'phone', '/', 'Recognize'],
-    ['/inside', 'phone', '/inside', 'How it was read'],
+    ['/', 'phone', '/', 'CNN Digit AI'],
+    ['/inside', 'phone', '/', 'CNN Digit AI'],
     ['/train', 'phone', '/train', 'Train'],
     ['/train/run', 'phone', '/train', 'Train'],
-    ['/train/details', 'phone', '/train/details', 'Run details'],
+    ['/train/details', 'phone', '/train/details', 'Analysis'],
     ['/train/charts', 'phone', '/train/charts', 'Raw charts'],
-    ['/', 'tablet', '/', 'Recognize'],
-    ['/inside', 'tablet', '/', 'Recognize'],
+    ['/', 'tablet', '/', 'CNN Digit AI'],
+    ['/inside', 'tablet', '/', 'CNN Digit AI'],
     ['/train', 'tablet', '/train', 'Train'],
     ['/train/run', 'tablet', '/train', 'Train'],
     ['/train/details', 'tablet', '/train', 'Train'],
@@ -101,20 +101,12 @@ describe('every route renders and lands at its address', () => {
 // 2. The navigation each mode should have, and no other.
 
 describe('navigation per layout', () => {
-  it('phone: the bottom tab bar on the two root screens, and no header pill or rail', () => {
-    renderAt('/', 'phone');
-    const navs = screen.getAllByRole('navigation', { name: 'Mode' });
-    expect(navs).toHaveLength(1);
-    expect(navs[0].closest('header')).toBeNull();
-    expect(navs[0].closest('aside')).toBeNull();
-    expect(document.querySelector('aside')).toBeNull();
-  });
-
-  it('phone: no tab bar on pushed screens', () => {
+  it('phone: no tab bar, header pill or rail on any screen', () => {
     seedRuns();
-    for (const route of ['/inside', '/train/run', '/train/details', '/train/charts']) {
+    for (const route of ['/', '/train', '/train/run', '/train/details', '/train/charts']) {
       const { unmount } = renderAt(route, 'phone');
       expect(screen.queryByRole('navigation', { name: 'Mode' })).not.toBeInTheDocument();
+      expect(document.querySelector('aside')).toBeNull();
       unmount();
     }
   });
@@ -135,22 +127,32 @@ describe('navigation per layout', () => {
     expect(navs[0].closest('aside')).not.toBeNull();
     expect(navs[0].closest('header')).toBeNull();
     expect(document.querySelector('aside')).toContainElement(navs[0]);
-    expect(screen.getByText('Saved model', { selector: 'span' })).toBeInTheDocument();
+    expect(screen.getByText('App model', { selector: 'span' })).toBeInTheDocument();
   });
 });
 
 // 3. Moving between Recognize and Train and back.
 
 describe('moving Recognize to Train and back', () => {
-  it('phone: tab bar switches both ways', async () => {
+  it('phone: the Train button goes forward and the back arrow goes back', async () => {
     const user = userEvent.setup();
     renderAt('/', 'phone');
     await user.click(screen.getByRole('link', { name: 'Train' }));
     expect(where()).toBe('/train');
-    expect(screen.getByRole('link', { name: 'Train' })).toHaveAttribute('aria-current', 'page');
-    await user.click(screen.getByRole('link', { name: 'Recognize' }));
+    expect(screen.getByRole('heading', { level: 1, name: 'Train' })).toBeInTheDocument();
+    await user.click(screen.getByRole('link', { name: 'Back to Recognize' }));
     expect(where()).toBe('/');
-    expect(screen.getByRole('link', { name: 'Recognize' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('heading', { level: 1, name: 'CNN Digit AI' })).toBeInTheDocument();
+  });
+
+  it('phone: a finished run leads on to Analysis, and Retrain leads back to the settings', async () => {
+    const user = userEvent.setup();
+    seedRuns();
+    renderAt('/train/run', 'phone');
+    await user.click(screen.getByRole('link', { name: 'Analyze' }));
+    expect(where()).toBe('/train/details');
+    await user.click(screen.getByRole('link', { name: /^Retrain with / }));
+    expect(where()).toBe('/train');
   });
 
   it('tablet: header pill switches both ways', async () => {
@@ -161,7 +163,7 @@ describe('moving Recognize to Train and back', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Train' })).toBeInTheDocument();
     await user.click(screen.getByRole('link', { name: 'Recognize' }));
     expect(where()).toBe('/');
-    expect(screen.getByRole('heading', { level: 1, name: 'Recognize' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'CNN Digit AI' })).toBeInTheDocument();
   });
 
   it('desktop: rail switches both ways', async () => {
@@ -177,8 +179,11 @@ describe('moving Recognize to Train and back', () => {
 // 4. Pushed screens on the phone have a back link to the right parent.
 
 describe('phone back links of pushed screens', () => {
-  it('How it was read goes back to Recognize', () => {
-    renderAt('/inside', 'phone');
+  it('Recognize has no back link; Train goes back to Recognize', () => {
+    const { unmount } = renderAt('/', 'phone');
+    expect(backLink()).toBeNull();
+    unmount();
+    renderAt('/train', 'phone');
     expect(backLink()).toHaveAttribute('href', '/');
   });
 
@@ -188,22 +193,23 @@ describe('phone back links of pushed screens', () => {
     expect(backLink()).toHaveAttribute('href', '/train');
   });
 
-  it('Run details goes back to Train settings', () => {
+  it('Analysis goes back to Train settings', () => {
     renderAt('/train/details', 'phone');
     expect(backLink()).toHaveAttribute('href', '/train');
   });
 
-  it('Raw charts goes back to Run details', () => {
+  it('Raw charts goes back to Training', () => {
     renderAt('/train/charts', 'phone');
-    expect(backLink()).toHaveAttribute('href', '/train/details');
+    expect(backLink()).toHaveAttribute('href', '/train/run');
   });
 
   it('the back link takes the visitor to the parent', async () => {
     const user = userEvent.setup();
+    seedRuns();
     renderAt('/train/charts', 'phone');
     await user.click(backLink()!);
-    expect(where()).toBe('/train/details');
-    expect(screen.getAllByRole('heading', { level: 1 }).map((h) => h.textContent)).toContain('Run details');
+    expect(where()).toBe('/train/run');
+    expect(screen.getAllByRole('heading', { level: 1 }).map((h) => h.textContent)).toContain('Training');
   });
 });
 
@@ -224,12 +230,17 @@ describe('redirects for screens already on the page', () => {
   it('tablet keeps Raw charts as its own pushed screen', () => {
     renderAt('/train/charts', 'tablet');
     expect(where()).toBe('/train/charts');
-    expect(backLink()).toHaveAttribute('href', '/train/details');
+    expect(backLink()).toHaveAttribute('href', '/train');
+  });
+
+  it('phone: How it was read is part of Recognize now', () => {
+    renderAt('/inside', 'phone');
+    expect(where()).toBe('/');
   });
 
   it('phone keeps every pushed address', () => {
     seedRuns();
-    for (const route of ['/inside', '/train/details', '/train/charts', '/train/run']) {
+    for (const route of ['/train/details', '/train/charts', '/train/run']) {
       const { unmount } = renderAt(route, 'phone');
       expect(where()).toBe(route);
       unmount();
@@ -247,17 +258,14 @@ describe('address fallbacks', () => {
 
   it.each(['phone', 'tablet', 'desktop'] as LayoutMode[])('%s: an unknown address shows Recognize', (mode) => {
     renderAt('/no-such-screen', mode);
-    expect(screen.getAllByRole('heading', { level: mode === 'desktop' ? 2 : 1 }).map((h) => h.textContent)).toContain('Recognize');
-    if (mode === 'phone') {
-      expect(screen.getByRole('link', { name: 'Recognize' })).toHaveAttribute('aria-current', 'page');
-    }
+    expect(screen.getAllByRole('heading', { level: mode === 'desktop' ? 2 : 1 }).map((h) => h.textContent)).toContain('CNN Digit AI');
     if (mode === 'desktop') {
       expect(screen.getByRole('region', { name: 'Draw and result' })).toBeInTheDocument();
     }
   });
 
-  it('an unknown address under train counts as Train in the tab bar', () => {
-    renderAt('/train/unknown', 'phone');
+  it('an unknown address under train counts as Train in the tablet header', () => {
+    renderAt('/train/unknown', 'tablet');
     expect(screen.getByRole('link', { name: 'Train' })).toHaveAttribute('aria-current', 'page');
   });
 });
@@ -274,7 +282,7 @@ describe('desktop panes', () => {
   it('Train has the three panes: settings, run details, raw charts', () => {
     renderAt('/train', 'desktop');
     expect(screen.getByRole('region', { name: 'Settings' })).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Run details' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Analysis' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Raw charts' })).toBeInTheDocument();
   });
 
@@ -282,7 +290,7 @@ describe('desktop panes', () => {
     seedRuns();
     renderAt('/train/run', 'desktop');
     expect(screen.getByRole('region', { name: 'Training' })).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Run details' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Analysis' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Raw charts' })).toBeInTheDocument();
   });
 
@@ -307,13 +315,13 @@ describe('links hidden inside desktop panes', () => {
     expect(linkTargets()).not.toContain('/inside');
   });
 
-  it('Train pane without a run: no link to Run details or Raw charts', () => {
+  it('Train pane without a run: no link to Analysis or Raw charts', () => {
     renderAt('/train', 'desktop');
     const targets = linkTargets();
     for (const target of HIDDEN) expect(targets).not.toContain(target);
   });
 
-  it('Train pane with a run: last-run card has no link to Run details', () => {
+  it('Train pane with a run: last-run card has no link to Analysis', () => {
     seedRuns();
     renderAt('/train', 'desktop');
     expect(linkTargets()).not.toContain('/train/details');
@@ -321,7 +329,7 @@ describe('links hidden inside desktop panes', () => {
     expect(linkTargets()).not.toContain('/train/charts');
   });
 
-  it('Training pane: no All metrics link, Run details has no Raw charts link', () => {
+  it('Training pane: no All metrics link, Analysis has no Raw charts link', () => {
     seedRuns();
     renderAt('/train/run', 'desktop');
     const targets = linkTargets();
@@ -340,10 +348,10 @@ describe('with a finished run in the store', () => {
     expect(screen.queryByText(/97\.9%/)).not.toBeInTheDocument();
   });
 
-  it('phone Run details shows the run and the one before it in the legend', () => {
+  it('phone Analysis shows the run and the one before it in the legend', () => {
     seedRuns();
     renderAt('/train/details', 'phone');
-    expect(screen.getByRole('heading', { level: 1, name: 'Run details' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Analysis' })).toBeInTheDocument();
     expect(screen.getAllByText('run 2').length).toBeGreaterThan(0);
     expect(screen.getAllByText('run 1').length).toBeGreaterThan(0);
     expect(screen.queryByText('No runs yet')).not.toBeInTheDocument();
@@ -362,7 +370,7 @@ describe('with a finished run in the store', () => {
     seedRuns();
     renderAt('/train', 'desktop');
     expect(screen.getByText(/98\.6% · 138 mistakes/)).toBeInTheDocument();
-    expect(within(screen.getByRole('region', { name: 'Run details' })).getAllByText('run 2').length).toBeGreaterThan(0);
+    expect(within(screen.getByRole('region', { name: 'Analysis' })).getAllByText('run 2').length).toBeGreaterThan(0);
     expect(within(screen.getByRole('region', { name: 'Raw charts' })).getByLabelText('Latest run')).toBeInTheDocument();
   });
 });

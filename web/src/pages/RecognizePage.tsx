@@ -29,7 +29,7 @@ export function RecognizePage() {
 
   if (mode === 'tablet') {
     return (
-      <TabletPage title="Recognize">
+      <TabletPage title="CNN Digit AI">
         <div className={cx(columns.column, styles.padColumn)}>
           <DrawingPad />
           <ModelPills />

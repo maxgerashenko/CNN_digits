@@ -164,10 +164,21 @@ describe('CurveGuide', () => {
 });
 
 describe('TrainingActions', () => {
-  it('retrained button is disabled until done', () => {
+  it('while running: only Stop training, with its note', () => {
     setTraining({ phase: 'running', jobSettings: settings });
     wrap(<TrainingActions />);
-    expect(screen.getByRole('button', { name: 'Use my retrained model' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Use trained model' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Analyze' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Stop training' })).toBeInTheDocument();
+    expect(screen.getByText("No need to wait if the training doesn't look good.")).toBeInTheDocument();
+  });
+
+  it('done: Use trained model and Analyze, no Stop', () => {
+    setTraining({ phase: 'done', jobSettings: settings });
+    wrap(<TrainingActions />);
+    expect(screen.queryByRole('button', { name: 'Stop training' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'Analyze' })).toHaveAttribute('href', '/train/details');
+    expect(screen.getByText('You can retrain your model.')).toBeInTheDocument();
   });
 
   it('done: uses the retrained model and goes to the first screen', async () => {
@@ -175,7 +186,7 @@ describe('TrainingActions', () => {
     act(() => useModelStore.getState().setRetrained(model, 'job-1'));
     setTraining({ phase: 'done', jobSettings: settings });
     wrap(<TrainingActions />);
-    await userEvent.click(screen.getByRole('button', { name: 'Use my retrained model' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Use trained model' }));
     expect(useModelStore.getState().active).toBe('retrained');
     expect(screen.getByText('recognize page')).toBeInTheDocument();
   });
@@ -198,17 +209,18 @@ describe('TrainingActions', () => {
 });
 
 describe('TrainingScreen', () => {
-  it('phone: has All metrics link and back link', () => {
+  it('phone: back link, the raw charts on the same screen, no All metrics link', () => {
     setTraining({ phase: 'running', jobSettings: settings });
     wrap(<TrainingScreen />);
     expect(screen.getByRole('heading', { level: 1, name: 'Training' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /All metrics/ })).toHaveAttribute('href', '/train/details');
-    expect(screen.getByRole('link', { name: 'Back to settings' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Back to settings' })).toHaveAttribute('href', '/train');
+    expect(screen.getByRole('region', { name: 'Raw charts' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /All metrics/ })).toBeNull();
   });
 
-  it('pane: no All metrics link', () => {
+  it('pane: no raw charts inside, they have their own pane', () => {
     setTraining({ phase: 'running', jobSettings: settings });
     wrap(<TrainingScreen />, { pane: true });
-    expect(screen.queryByRole('link', { name: /All metrics/ })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Raw charts' })).toBeNull();
   });
 });

@@ -69,3 +69,15 @@
   font-size: var(--text-hint);
   line-height: 1.45;
 }
+
+/* The phone panel: one glass card per block. */
+.panel {
+  gap: 10px;
+  padding: var(--space-card);
+  border-top: 0;
+  border-radius: var(--radius-card);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+}

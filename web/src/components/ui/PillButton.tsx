@@ -7,10 +7,11 @@ import styles from './PillButton.module.css';
 export interface PillButtonProps {
   /**
    * 'primary' = the violet gradient main button, 50px high, full width.
-   * 'text'    = text only, 48px high ("Stop training").
+   * 'secondary' = the dark pill with an outline, 50px high, full width ("Stop training", "Analyze").
+   * 'text'    = text only, 48px high.
    * 'small'   = the 36px "Set 4" button.
    */
-  variant?: 'primary' | 'text' | 'small';
+  variant?: 'primary' | 'secondary' | 'text' | 'small';
   /** Renders a link to this address instead of a button. */
   to?: string;
   onClick?: MouseEventHandler<HTMLElement>;

@@ -9,10 +9,12 @@ export interface ResultCardProps {
   className?: string;
   /** 'bars' = the phone card with ten bars. 'wide' = the tablet card: words left, digit and percentage right. */
   variant: 'bars' | 'wide';
+  /** 'bars' only: 'small' is the low card shown after the phone screen is scrolled. Default 'large'. */
+  size?: 'large' | 'small';
 }
 
 /** The answer: the most likely digit, how sure the network is, and (phone) the ten probabilities. */
-export function ResultCard({ className, variant }: ResultCardProps) {
+export function ResultCard({ className, variant, size = 'large' }: ResultCardProps) {
   const { modelStatus, modelError, status, result } = useReading();
 
   const reading = status === 'ready' && result !== null;
@@ -21,7 +23,10 @@ export function ResultCard({ className, variant }: ResultCardProps) {
 
   if (modelStatus !== 'ready') {
     return (
-      <GlassCard className={cx(styles.card, styles.problem, className)} aria-label="Result">
+      <GlassCard
+        className={cx(styles.card, styles.problem, variant === 'bars' && styles.bars, size === 'small' && styles.small, className)}
+        aria-label="Result"
+      >
         <EmptyState surface="plain" title={noModelTitle(modelStatus)}>
           {modelError ?? noModelText(modelStatus)}
         </EmptyState>
@@ -51,13 +56,15 @@ export function ResultCard({ className, variant }: ResultCardProps) {
   }
 
   return (
-    <GlassCard className={cx(styles.card, styles.bars, className)} aria-label="Result">
+    <GlassCard className={cx(styles.card, styles.bars, size === 'small' && styles.small, className)} aria-label="Result">
       <div className={styles.side} aria-live="polite">
-        <Mono tone="muted">Result</Mono>
-        <span className={cx(styles.digit, !reading && styles.none)}>{digit}</span>
-        <Mono tone="accent" size="small">
-          {percent ?? 'Draw a digit'}
-        </Mono>
+        <span className={cx(styles.digit, styles.barsDigit, !reading && styles.none)}>{digit}</span>
+        <span className={styles.meta}>
+          <Mono tone="muted">Result</Mono>
+          <Mono tone="accent" size="small">
+            {percent ?? 'Draw a digit'}
+          </Mono>
+        </span>
       </div>
       <ProbabilityColumns probs={reading ? result.probs : null} top={reading ? result.digit : null} />
     </GlassCard>

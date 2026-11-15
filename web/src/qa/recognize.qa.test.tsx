@@ -201,27 +201,27 @@ describe('ModelPills keyboard and state', () => {
     expect(screen.getByRole('group', { name: 'Model' })).toBeInTheDocument();
   });
 
-  it('switches to My retrained with the keyboard once it is ready', async () => {
+  it('switches to My trained with the keyboard once it is ready', async () => {
     const user = userEvent.setup();
     useModelStore.getState().setRetrained(makeFakeModel(), 'run-9');
     show(<ModelPills />);
     await user.tab();
-    expect(screen.getByRole('button', { name: 'Saved model' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'App model' })).toHaveFocus();
     await user.tab();
-    expect(screen.getByRole('button', { name: 'My retrained' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'My trained' })).toHaveFocus();
     await user.keyboard('{Enter}');
     expect(useModelStore.getState().active).toBe('retrained');
-    expect(screen.getByRole('button', { name: 'My retrained' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: 'Saved model' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: 'My trained' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'App model' })).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('skips the disabled My retrained pill when tabbing', async () => {
+  it('skips the disabled My trained pill when tabbing', async () => {
     const user = userEvent.setup();
     show(<ModelPills />);
     await user.tab();
-    expect(screen.getByRole('button', { name: 'Saved model' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'App model' })).toHaveFocus();
     await user.tab();
-    expect(screen.getByRole('button', { name: 'My retrained' })).not.toHaveFocus();
+    expect(screen.getByRole('button', { name: 'My trained' })).not.toHaveFocus();
   });
 });
 
@@ -291,9 +291,9 @@ describe('Recognize in a pane and on tablet or desktop', () => {
     expect(screen.getByRole('link', { name: 'Back to drawing' })).toHaveAttribute('href', '/');
   });
 
-  it('MainScreen shows the Mode tab bar on the phone only, not in a pane', () => {
+  it('MainScreen has no Mode tab bar, on the phone or in a pane', () => {
     const { unmount } = show(<MainScreen />, 'phone');
-    expect(screen.getByRole('navigation', { name: 'Mode' })).toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: 'Mode' })).not.toBeInTheDocument();
     unmount();
     show(<MainScreen />, 'phone', true);
     expect(screen.queryByRole('navigation', { name: 'Mode' })).not.toBeInTheDocument();
@@ -305,10 +305,16 @@ describe('Recognize in a pane and on tablet or desktop', () => {
     expect(screen.queryByRole('link', { name: /How it was read/ })).not.toBeInTheDocument();
   });
 
-  it('the phone recognize screen keeps its tab bar and the How it was read link', () => {
+  it('the phone recognize screen shows the conv blocks under the result, and the Train button', () => {
+    readyModel();
     renderApp({ route: '/', mode: 'phone' });
-    expect(screen.getByRole('link', { name: /How it was read/ })).toHaveAttribute('href', '/inside');
-    expect(screen.getByRole('navigation', { name: 'Mode' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /How it was read/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'How it was read' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Conv block 1' })).toHaveTextContent('01 Conv block 1');
+    expect(screen.getByRole('region', { name: 'Conv block 2' })).toHaveTextContent('02 Conv block 2');
+    expect(screen.queryByText('01 Input')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Train' })).toHaveAttribute('href', '/train');
+    expect(screen.queryByRole('navigation', { name: 'Mode' })).not.toBeInTheDocument();
   });
 
   it('the tablet recognize page has three cards and no How it was read link', () => {

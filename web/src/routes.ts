@@ -6,15 +6,15 @@ import type { LayoutMode } from './types';
 export const ROUTES = {
   /** 1 Recognize */
   recognize: '/',
-  /** 1b How it was read (its own screen on a phone only) */
+  /** Was 1b How it was read. That is part of Recognize now; the address leads there. */
   inside: '/inside',
   /** 2 Configure */
   train: '/train',
   /** 2b Training */
   training: '/train/run',
-  /** 2c Run details (its own screen on a phone only) */
+  /** 2c Analysis (its own screen on a phone only) */
   details: '/train/details',
-  /** 2d Raw charts (its own screen on phone and tablet) */
+  /** 2d Raw charts (its own screen on phone and tablet; on a phone it is also part of Training) */
   charts: '/train/charts',
 } as const;
 
@@ -26,8 +26,8 @@ export type RoutePath = (typeof ROUTES)[keyof typeof ROUTES];
  * Returns the address to go to, or null when the screen exists in this layout.
  */
 export function redirectFor(path: string, mode: LayoutMode): RoutePath | null {
-  if (mode === 'phone') return null;
   if (path === ROUTES.inside) return ROUTES.recognize;
+  if (mode === 'phone') return null;
   if (path === ROUTES.details) return ROUTES.train;
   if (path === ROUTES.charts && mode === 'desktop') return ROUTES.train;
   return null;

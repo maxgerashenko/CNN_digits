@@ -26,7 +26,7 @@ export function TrainPage() {
         <Pane label="Settings">
           <ConfigureScreen />
         </Pane>
-        <Pane label="Run details">
+        <Pane label="Analysis">
           <DetailsScreen />
         </Pane>
         <Pane label="Raw charts">
