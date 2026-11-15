@@ -16,6 +16,9 @@ Other runs wait in line and are told their place.
                     its own Python process, which starts when the line needs it
                     and closes after two idle minutes, so an idle server uses
                     the same memory as before. Each needs about 1.5 GB of memory.
+    TRAIN_WORKERS_WARM  How many of them stay ready once they have started
+                    (default 1: only the first). With 2, the first extra process
+                    does not close when idle, so two runs always start at once.
 
 Run it locally from the repository root:
 
@@ -60,17 +63,27 @@ WORKERS_LIMIT = 8
 WORKER_IDLE_SECONDS = 120
 
 
-def max_workers_from_env() -> int:
-    """TRAIN_WORKERS as a number from 1 to WORKERS_LIMIT. Anything else counts as 1."""
-    raw = os.environ.get("TRAIN_WORKERS", "").strip()
+def _workers_setting(name: str) -> int:
+    """An environment variable as a number from 1 to WORKERS_LIMIT. Anything else counts as 1."""
+    raw = os.environ.get(name, "").strip()
     if not raw:
         return 1
     try:
         value = int(raw)
     except ValueError:
-        log.warning("TRAIN_WORKERS=%r is not a whole number; one run trains at a time.", raw)
+        log.warning("%s=%r is not a whole number; 1 is used.", name, raw)
         return 1
     return max(1, min(WORKERS_LIMIT, value))
+
+
+def max_workers_from_env() -> int:
+    """TRAIN_WORKERS: the most runs that train at the same time."""
+    return _workers_setting("TRAIN_WORKERS")
+
+
+def warm_workers_from_env() -> int:
+    """TRAIN_WORKERS_WARM: how many workers stay ready when there is no work."""
+    return _workers_setting("TRAIN_WORKERS_WARM")
 
 
 def _import_sibling(name: str):
@@ -318,7 +331,8 @@ class JobManager:
     The first worker trains inside the server and never stops. The others are
     started when more runs wait than workers are free. Each of those trains
     through its own runner (a `ProcessRunner` unless `make_runner` gives
-    something else) and stops after `idle_seconds` without work.
+    something else) and stops after `idle_seconds` without work, unless it
+    is one of the `warm_workers` that stay ready.
     """
 
     def __init__(
@@ -327,9 +341,12 @@ class JobManager:
         max_workers: int | None = None,
         make_runner: Callable | None = None,
         idle_seconds: float = WORKER_IDLE_SECONDS,
+        warm_workers: int | None = None,
     ):
         self.backend = backend
         self.max_workers = max_workers_from_env() if max_workers is None else max(1, int(max_workers))
+        warm = warm_workers_from_env() if warm_workers is None else max(1, int(warm_workers))
+        self.warm_workers = min(warm, self.max_workers)
         self.jobs: dict[str, Job] = {}
         self._waiting: list[Job] = []
         self._finished: list[Job] = []
@@ -406,11 +423,14 @@ class JobManager:
                     deadline = time.monotonic() + self._idle_seconds
                     while not self._waiting:
                         left = deadline - time.monotonic()
-                        if left <= 0:
+                        if left > 0:
+                            self._lock.wait(left)
+                        elif self._extra > self.warm_workers - 1:
                             self._free -= 1
                             self._extra -= 1
                             return
-                        self._lock.wait(left)
+                        else:  # one of the workers that stay ready
+                            self._lock.wait()
                     job = self._take()
                 self._train(job, lambda out_dir: runner.run(job.settings, out_dir, job.on_progress))
                 with self._lock:
@@ -473,10 +493,17 @@ def create_app(
     max_workers: int | None = None,
     make_runner: Callable | None = None,
     idle_seconds: float = WORKER_IDLE_SECONDS,
+    warm_workers: int | None = None,
 ) -> FastAPI:
     """Build the web API. The arguments after `backend` are for tests; see JobManager."""
     backend = backend or Backend()
-    manager = JobManager(backend, max_workers=max_workers, make_runner=make_runner, idle_seconds=idle_seconds)
+    manager = JobManager(
+        backend,
+        max_workers=max_workers,
+        make_runner=make_runner,
+        idle_seconds=idle_seconds,
+        warm_workers=warm_workers,
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
