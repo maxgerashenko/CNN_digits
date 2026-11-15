@@ -12,6 +12,13 @@
 # The container gets no folders of this Mac, runs as a normal user and
 # listens on this Mac only (127.0.0.1). Only the tunnel reaches it.
 #
+# The server answers pages from https://maxgerashenko.github.io and from this
+# Mac (localhost). To let other pages call it, such as the dev app opened on a
+# tablet, list every allowed address before the command:
+#
+#   ALLOWED_ORIGINS="https://maxgerashenko.github.io,http://192.168.1.191:5174" \
+#     scripts/mac-server.sh start https://your-name.ngrok-free.dev
+#
 # Needs: Docker Desktop running, and ngrok signed in (ngrok config add-authtoken).
 # The Mac must stay awake with the lid open; this script keeps it awake.
 set -eu
@@ -37,6 +44,7 @@ case "${1:-}" in
       -p "127.0.0.1:$PORT:$PORT" \
       --cap-drop ALL --security-opt no-new-privileges \
       --memory 4g --cpus 8 --pids-limit 512 \
+      ${ALLOWED_ORIGINS:+-e "ALLOWED_ORIGINS=$ALLOWED_ORIGINS"} \
       "$NAME" >/dev/null
     trap stop_server EXIT INT TERM
     echo "Training server: http://127.0.0.1:$PORT  (public: $URL)"
