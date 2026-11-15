@@ -230,7 +230,7 @@ describe('QA: MetricCard goal and verdict', () => {
     setTraining({ phase: 'running', jobSettings: settings2, epochs: makeEpochs([row(0.96, 0.14, 29), row(0.979, 0.07, 58)]) });
     at(<MetricCard metric="accuracy" />);
     expect(screen.getByText('97.9%')).toBeInTheDocument();
-    expect(screen.getByText('1.68 to go')).toBeInTheDocument();
+    expect(screen.getByText('1.63 to go')).toBeInTheDocument();
   });
 
   it('loss with 0 epochs: dash value, goal near 0, lower is better, no verdict', () => {
@@ -397,8 +397,8 @@ describe('QA: summary table values', () => {
     setRuns([runOne, runTwo]);
     renderApp({ route: '/train/details' });
     const cells = (name: string) => within(rowFor(name)).getAllByRole('cell').map((c) => c.textContent);
-    expect(cells('Val accuracy')).toEqual(['97.9%', '98.6%', '99.58%']);
-    expect(cells('Mistakes')).toEqual(['210', '138', '41']);
+    expect(cells('Val accuracy')).toEqual(['97.9%', '98.6%', '99.53%']);
+    expect(cells('Mistakes')).toEqual(['210', '138', '47']);
     expect(cells('Val loss')).toEqual(['0.07', '0.05', 'near 0']);
   });
 

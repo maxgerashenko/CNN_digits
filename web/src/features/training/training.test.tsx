@@ -96,7 +96,7 @@ describe('MetricCard', () => {
     wrap(<MetricCard metric="accuracy" />);
     expect(screen.getByText('—')).toBeInTheDocument();
     expect(screen.queryByText('on track')).toBeNull();
-    expect(screen.getByText('goal 99.58%')).toBeInTheDocument();
+    expect(screen.getByText('goal 99.53%')).toBeInTheDocument();
   });
 
   it('1 epoch: value and distance, no verdict', () => {
@@ -108,7 +108,7 @@ describe('MetricCard', () => {
       </>,
     );
     expect(screen.getByText('96.0%')).toBeInTheDocument();
-    expect(screen.getByText('3.58 to go')).toBeInTheDocument();
+    expect(screen.getByText('3.53 to go')).toBeInTheDocument();
     expect(screen.getByText('0.14')).toBeInTheDocument();
     expect(screen.getByText('goal near 0')).toBeInTheDocument();
     expect(screen.queryByText('on track')).toBeNull();

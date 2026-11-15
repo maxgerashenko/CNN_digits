@@ -269,8 +269,8 @@ describe('summarizeRuns and describeRun', () => {
   it('gives the three rows, with a dash column for run 1 alone', () => {
     const rows = summarizeRuns(runOne);
     expect(rows.map((r) => r.name)).toEqual(['Val accuracy', 'Mistakes', 'Val loss']);
-    expect(rows[0]).toEqual({ name: 'Val accuracy', prev: null, now: '97.9%', ideal: '99.58%' });
-    expect(rows[1].ideal).toBe('41');
+    expect(rows[0]).toEqual({ name: 'Val accuracy', prev: null, now: '97.9%', ideal: '99.53%' });
+    expect(rows[1].ideal).toBe('47');
     expect(rows[2].ideal).toBe('near 0');
   });
 

@@ -25,7 +25,7 @@ export const SAVED_MODEL_URL: string = `${import.meta.env.BASE_URL}model/model.j
  * as the "ideal" column. Update them when a different saved model is exported.
  */
 export const SAVED_MODEL_FACTS = {
-  testAccuracy: 0.9958,
-  mistakes: 41,
+  testAccuracy: 0.9953,
+  mistakes: 47,
   testImages: 10000,
 } as const;
