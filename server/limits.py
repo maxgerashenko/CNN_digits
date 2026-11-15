@@ -90,7 +90,7 @@ SETTINGS: dict[str, dict[str, Any]] = {
     "dense_units": {"label": "Dense units", "kind": "choice", "choices": [32, 64, 128, 256], "default": 128},
     "dropout": {"label": "Dropout", "kind": "float", "min": 0.0, "max": 0.5, "default": 0.1},
     "learning_rate": {"label": "Learning rate", "kind": "choice", "choices": [0.0001, 0.001, 0.01], "default": 0.001},
-    "epochs": {"label": "Epochs", "kind": "int", "min": 1, "max": 5, "default": 2},
+    "epochs": {"label": "Epochs", "kind": "int", "min": 1, "max": 20, "default": 2},
     # Advanced panel
     "batch_norm": {"label": "Batch norm", "kind": "bool", "default": True},
     "batch_size": {"label": "Batch size", "kind": "choice", "choices": [32, 64, 128], "default": 32},
