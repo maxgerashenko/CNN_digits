@@ -81,6 +81,7 @@ scripts/mac-server.sh stop
 - The container gets no folders of the Mac and listens on the Mac only. Only the tunnel reaches it.
 - The Mac must stay awake with the lid open. The script keeps it awake while it runs.
 - Anyone who knows the address can start training runs, so run the server only when you need it.
+- Up to 3 runs train at the same time; more wait in line. The extra ones run in their own processes, which start when people queue and close after two idle minutes. Set another number with `WORKERS=1 scripts/mac-server.sh start ...` (1 to 8). On other hosts the server reads `TRAIN_WORKERS` (default 1).
 - The free ngrok plan shows browsers a warning page. The app sends the header `ngrok-skip-browser-warning` with each request to pass it (`web/src/api/serverFetch.ts`).
 
 The same `server/Dockerfile` runs on a cloud host (a Hugging Face Docker Space, Google Cloud Run). To move there, deploy it and change `VITE_TRAINING_SERVER_URL`.
