@@ -77,8 +77,9 @@ Add channel to inputs
 Normalization from [0...255] to [0...1].
 """
 
-train_normalized = train_image / 255
-test_normalized = test_image / 255
+// TensorFlow works in 32-bit so don't need 64-bit precision.
+train_normalized = train_image.astype('float32') / 255
+test_normalized = test_image.astype('float32') / 255
 
 pd.DataFrame(train_normalized[0])
 
@@ -102,11 +103,24 @@ test_normalized_shaped = test_normalized.reshape(
 print('train_image_chanel:', train_normalized_shaped.shape)
 print('test_image_chanel:', test_normalized_shaped.shape)
 
-"""# Model"""
+"""Validation set
 
-import tensorflow as tf
-import numpy as np
-import random
+Keep the last 6,000 training images out of training. Early stopping and the
+learning rate drop watch this set. The test set is then used only once, at the
+end, so its score is an honest measurement.
+"""
+
+VALIDATION_SIZE = 6000
+
+fit_images = train_normalized_shaped[:-VALIDATION_SIZE]
+fit_labels = train_label[:-VALIDATION_SIZE]
+validation_images = train_normalized_shaped[-VALIDATION_SIZE:]
+validation_labels = train_label[-VALIDATION_SIZE:]
+
+print('fit_images:', fit_images.shape)
+print('validation_images:', validation_images.shape)
+
+"""# Model"""
 
 # Shape
 (_, WIDTH, HEIGHT, CHANNELS) = train_normalized_shaped.shape
@@ -151,17 +165,19 @@ def conv_bn_relu(filters, kernel_size, strides=1, padding='same'):
         tf.keras.layers.Activation('relu')
     ]
 
-DATA_AUGMENTATION_ANGLE = 0.05
+# Each image is changed a little on every pass, so the model never sees
+# exactly the same picture twice.
+AUGMENTATION_ROTATION = 0.05     # part of a full turn: 0.05 is up to 18 degrees each way
+AUGMENTATION_ZOOM = 0.05         # up to 5% bigger or smaller
+AUGMENTATION_TRANSLATION = 0.05  # up to 5% of the image, about 1.4 pixels
 
-# tilting the input a littl ebit
 data_augmentation = tf.keras.Sequential([
-    tf.keras.layers.RandomRotation(DATA_AUGMENTATION_ANGLE),
-    tf.keras.layers.RandomZoom(DATA_AUGMENTATION_ANGLE),
-    tf.keras.layers.RandomTranslation(DATA_AUGMENTATION_ANGLE, DATA_AUGMENTATION_ANGLE),
+    tf.keras.layers.RandomRotation(AUGMENTATION_ROTATION),
+    tf.keras.layers.RandomZoom(AUGMENTATION_ZOOM),
+    tf.keras.layers.RandomTranslation(AUGMENTATION_TRANSLATION, AUGMENTATION_TRANSLATION),
 ])
 
 # Build model
-# Wrap the entire model construction in a CPU device context to avoid potential GPU initialization issues.
 model = tf.keras.Sequential([
     tf.keras.layers.Input(shape=(WIDTH, HEIGHT, CHANNELS)),
 
@@ -192,7 +208,7 @@ model = tf.keras.Sequential([
         FULLY_CONNECTED_UNITS,
         activation=None,
         use_bias=False,
-        kernel_initializer=tf.keras.initializers.VarianceScaling()
+        kernel_initializer=tf.keras.initializers.HeNormal()
     ),
     tf.keras.layers.BatchNormalization(),
     tf.keras.layers.Activation('relu'),
@@ -206,7 +222,6 @@ model = tf.keras.Sequential([
 ])
 
 # Compile
-# Wrap model compilation in a CPU device context to avoid potential GPU initialization issues with the optimizer.
 model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE),
     loss='sparse_categorical_crossentropy',
@@ -224,20 +239,14 @@ model.summary()
 
 """# Training"""
 
-import datetime
-import tensorflow as tf
-
 log_dir=".logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
-EPOCHS = 20 # repetition time, untion stopped by early stop
-PATIENCE = 3 # early stopping
-FACTOR = 0.5 # learning rate decay
-RELU_ON_PLATEAU_FACTOR = 0.5
-RELU_ON_PLATEAU_PATIENCE = 1
-RELU_ON_PLATEAU_MIN_LR = 1e-5
-
-# Early stopping
+EPOCHS = 20 # most passes over the data; early stopping usually ends sooner
+PATIENCE = 3 # early stopping: passes without a better validation loss
+REDUCE_LR_FACTOR = 0.5 # learning rate decay
+REDUCE_LR_PATIENCE = 1
+REDUCE_LR_MIN_LR = 1e-5
 
 # Callbacks
 callbacks = [
@@ -248,19 +257,18 @@ callbacks = [
     ),
     tf.keras.callbacks.ReduceLROnPlateau(
         monitor='val_loss',
-        factor=RELU_ON_PLATEAU_FACTOR,
-        patience=RELU_ON_PLATEAU_PATIENCE,
-        min_lr=RELU_ON_PLATEAU_MIN_LR
+        factor=REDUCE_LR_FACTOR,
+        patience=REDUCE_LR_PATIENCE,
+        min_lr=REDUCE_LR_MIN_LR
     ),
     tensorboard_callback
 ]
 
 # Train
-# Wrap model.fit in a CPU device context to ensure all training operations run on CPU
 training_history = model.fit(
-    train_normalized_shaped,
-    train_label,
-    validation_data=(test_normalized_shaped, test_label),
+    fit_images,
+    fit_labels,
+    validation_data=(validation_images, validation_labels),
     epochs=EPOCHS,
     batch_size=BATCH_SIZE,
     callbacks=callbacks,
@@ -270,13 +278,13 @@ training_history = model.fit(
 plt.xlabel('Epoch Number')
 plt.ylabel('Loss')
 plt.plot(training_history.history['loss'], label='training set')
-plt.plot(training_history.history['val_loss'], label='test set')
+plt.plot(training_history.history['val_loss'], label='validation set')
 plt.legend()
 
 plt.xlabel('Epoch Number')
 plt.ylabel('Accuracy')
 plt.plot(training_history.history['accuracy'], label='training set')
-plt.plot(training_history.history['val_accuracy'], label='test set')
+plt.plot(training_history.history['val_accuracy'], label='validation set')
 plt.legend()
 
 training_history
@@ -285,18 +293,19 @@ training_history
 
 # @title Train set
 train_validation_loss, train_validation_accuracy = model.evaluate(
-    train_normalized_shaped,
-    train_label,
+    fit_images,
+    fit_labels,
 )
 
-print('Validation loss:', train_validation_loss)
-print('Validation accuracy:', train_validation_accuracy)
+print('Train loss:', train_validation_loss)
+print('Train accuracy:', train_validation_accuracy)
 
 # @title Test set
+# The only place the test set is used to measure the model.
 test_validation_loss, test_validation_accuracy = model.evaluate(test_normalized_shaped, test_label)
 
-print('Validation loss: ', test_validation_loss)
-print('Validation accuracy: ', test_validation_accuracy)
+print('Test loss: ', test_validation_loss)
+print('Test accuracy: ', test_validation_accuracy)
 
 # @title Traing Test Gap
 train_test_loss_gap = abs(train_validation_loss - test_validation_loss)
@@ -316,7 +325,7 @@ loaded_model = tf.keras.models.load_model(model_name)
 
 """# Use Model"""
 
-predictions_one_hot = loaded_model.predict([test_normalized_shaped])
+predictions_one_hot = loaded_model.predict(test_normalized_shaped)
 
 print(predictions_one_hot[0]);
 
@@ -471,33 +480,37 @@ FULLY_CONNECTED_UNITS = 128
 
 # Use in Web
 
-To use this model on the web we need to convert it into the format that will be understandable by tensorflowjs. To do so we may use tfjs-converter as following:
+To use this model on the web, convert it into the two files TensorFlow.js reads (model.json and weights.bin) with the export script of this repository:
 
-tensorflowjs_converter --input_format keras \
-  ./experiments/digits_recognition_cnn/digits_recognition_cnn.h5 \
-  ./demos/public/models/digits_recognition_cnn
+python server/export.py digits_recognition_cnn.keras web/public/model
 
-
-  Find Demo in [link text](https://www.google.com/url?q=https%3A%2F%2Ftrekhleb.github.io%2Fmachine-learning-experiments)
+Note: the entries above were measured with the test set used as validation data. Entries made after the validation split are not directly comparable with them.
 """
 
-final_accuracy = training_history.history['accuracy'][-1]
-final_loss = training_history.history['loss'][-1]
-final_valid_accuracy = training_history.history['val_accuracy'][-1]
-final_valid_loss = training_history.history['val_loss'][-1]
+# Early stopping restores the weights of the epoch with the lowest validation
+# loss, so the numbers of that epoch describe the saved model, not the last one.
+epochs_run = len(training_history.history['val_loss'])
+best_epoch = int(np.argmin(training_history.history['val_loss']))
+
+final_accuracy = training_history.history['accuracy'][best_epoch]
+final_loss = training_history.history['loss'][best_epoch]
+final_valid_accuracy = training_history.history['val_accuracy'][best_epoch]
+final_valid_loss = training_history.history['val_loss'][best_epoch]
+
+print(f"Best epoch: {best_epoch + 1} of {epochs_run}")
 
 print(f"Final Training Accuracy: {final_accuracy:.4f}")
 print(f"Final Training Loss: {final_loss:.4f}")
 print(f"Final Validation Accuracy: {final_valid_accuracy:.4f}")
 print(f"Final Validation Loss: {final_valid_loss:.4f}")
+print(f"Test Accuracy: {test_validation_accuracy:.4f}")
+print(f"Test Loss: {test_validation_loss:.4f}")
 
 """**Reasoning**:
 Now that the final metrics have been extracted, the next step is to prepare this data, along with a current timestamp, into a suitable format (e.g., a dictionary) for logging into a Google Sheet.
 
 
 """
-
-import datetime
 
 log_entry = {
     'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -510,7 +523,15 @@ log_entry = {
     'fully_connected_units': FULLY_CONNECTED_UNITS,
     'learning_dropout': LEARNING_DROPOUT,
     'output_units': OUTPUT_UNITS,
+    'batch_size': BATCH_SIZE,
+    'learning_rate': LEARNING_RATE,
+    'seed': SEED,
+    'validation_size': VALIDATION_SIZE,
+    'epochs_run': epochs_run,
+    'best_epoch': best_epoch + 1,
     'wrong_count': wrong_count,
+    'test_accuracy': test_validation_accuracy,
+    'test_loss': test_validation_loss,
     'final_training_accuracy': final_accuracy,
     'final_training_loss': final_loss,
     'final_validation_accuracy': final_valid_accuracy,

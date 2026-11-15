@@ -33,7 +33,7 @@ describe('ChartsScreen', () => {
     expect(screen.getByRole('heading', { name: 'Accuracy, train vs validation' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Loss, train vs validation' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: /Accuracy, train vs validation: train 98\.3%, validation 98\.6%/ })).toBeInTheDocument();
-    expect(screen.getByText(/Here: train 98\.3%, validation 98\.6%, goal 99\.58%/)).toBeInTheDocument();
+    expect(screen.getByText(/Here: train 98\.3%, validation 98\.6%, goal 99\.53%/)).toBeInTheDocument();
   });
 
   it('works with a one-epoch run', () => {
