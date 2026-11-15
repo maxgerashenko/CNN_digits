@@ -30,8 +30,8 @@ describe('SettingsPanel', () => {
 
   it('writes to the settings store', () => {
     render(<SettingsPanel />);
-    fireEvent.click(screen.getByRole('button', { name: 'Epochs: more' }));
-    expect(useSettingsStore.getState().settings.epochs).toBe(3);
+    fireEvent.change(screen.getByRole('slider', { name: 'Epochs' }), { target: { value: '12' } });
+    expect(useSettingsStore.getState().settings.epochs).toBe(12);
     fireEvent.click(screen.getByRole('button', { name: '5×5' }));
     expect(useSettingsStore.getState().settings.kernel_size).toBe(5);
     fireEvent.change(screen.getByRole('slider', { name: 'Dropout' }), { target: { value: '0.3' } });

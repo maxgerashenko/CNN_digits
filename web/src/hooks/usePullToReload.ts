@@ -1,9 +1,9 @@
 import { useEffect, useState, type RefObject } from 'react';
 
 /** The spinner is fully visible after this much pull, in px. */
-export const PULL_VISIBLE = 56;
+export const PULL_VISIBLE = 36;
 /** Letting go after this much pull, in px, reloads the app. */
-export const PULL_RELOAD = 64;
+export const PULL_RELOAD = 40;
 
 /** Touches that begin on these do not start a pull: the drawing pad, sliders. */
 const IGNORE = 'input, [data-no-pull]';
@@ -15,9 +15,11 @@ export interface PullState {
   progress: number;
   /** True once the reload has started. */
   reloading: boolean;
+  /** True while the finger is down and pulling. The spinner then follows it with no delay. */
+  dragging: boolean;
 }
 
-const CLOSED: PullState = { height: 0, progress: 0, reloading: false };
+const CLOSED: PullState = { height: 0, progress: 0, reloading: false, dragging: false };
 
 /**
  * Phone: pulling the element down while it is scrolled to its top opens a
@@ -57,17 +59,18 @@ export function usePullToReload(
         if (dy < 0 || Math.abs(dx) > 12) tracking = false;
         return;
       }
-      // The spinner moves half as far as the finger.
-      pull = Math.max(0, dy / 2);
+      // The screen moves half as far as the finger and stops at the reload point:
+      // just enough to show the whole spinner.
+      pull = Math.min(PULL_RELOAD, Math.max(0, dy / 2));
       if (event.cancelable) event.preventDefault();
-      setState({ height: Math.min(pull, PULL_RELOAD + 16), progress: Math.min(1, pull / PULL_VISIBLE), reloading: false });
+      setState({ height: pull, progress: Math.min(1, pull / PULL_VISIBLE), reloading: false, dragging: true });
     };
 
     const onEnd = () => {
       if (!tracking) return;
       tracking = false;
       if (pull >= PULL_RELOAD) {
-        setState({ height: PULL_RELOAD, progress: 1, reloading: true });
+        setState({ height: PULL_RELOAD, progress: 1, reloading: true, dragging: false });
         reload();
       } else {
         setState(CLOSED);

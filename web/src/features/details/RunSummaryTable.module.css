@@ -84,3 +84,98 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* The phone panel. The same table, turned: the header row is a narrow column
+   of labels on the left and each measure is a column. In a column the run's
+   value comes first and large, then the run before and the ideal.
+   The short version folds away the label column, the run before and the
+   ideal. Like the Result card it folds slowly and opens fast. */
+.panel {
+  display: flex;
+  padding: 12px 6px;
+}
+
+.panel thead,
+.panel tbody {
+  display: contents;
+}
+
+.panel tr {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.panel thead tr {
+  flex: 0 0 auto;
+  max-width: 64px;
+  overflow: hidden;
+  transition:
+    max-width 80ms ease-out,
+    opacity 80ms ease-out;
+}
+
+.panel th,
+.panel td,
+.panel th:first-child,
+.panel td:first-child,
+.panel th:last-child,
+.panel td:last-child {
+  display: flex;
+  align-items: center;
+  width: auto;
+  height: 20px;
+  padding: 0 8px;
+  overflow: hidden;
+  text-align: left;
+  white-space: nowrap;
+  transition:
+    height 80ms ease-out,
+    opacity 80ms ease-out;
+}
+
+.panel .nowCell {
+  order: 1;
+  height: 30px;
+}
+
+.panel .prevCell {
+  order: 2;
+}
+
+.panel .idealCell {
+  order: 3;
+}
+
+.panel .name {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+}
+
+.panel .now {
+  font-size: var(--text-kpi);
+  font-weight: 300;
+}
+
+.panel .prev,
+.panel .ideal {
+  font-size: var(--text-hint);
+}
+
+.panel.short thead tr {
+  max-width: 0;
+  opacity: 0;
+}
+
+.panel.short .prevCell,
+.panel.short .idealCell {
+  height: 0;
+  opacity: 0;
+}
+
+.panel.short thead tr,
+.panel.short th,
+.panel.short td {
+  transition-duration: 300ms;
+}

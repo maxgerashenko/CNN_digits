@@ -18,6 +18,12 @@ body,
   min-height: 100%;
 }
 
+/* Safari on an iPhone pans the page sideways unless both html and body forbid it. */
+html {
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+}
+
 body {
   margin: 0;
   background: var(--color-bg);

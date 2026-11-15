@@ -31,7 +31,7 @@ export function SettingRow({ spec, check }: SettingRowProps) {
         )}
       </div>
       {spec.control === 'segmented' && <SettingControl spec={spec} />}
-      {spec.control === 'slider' && <SettingControl spec={spec} showEnds />}
+      {spec.control === 'slider' && <SettingControl spec={spec} showEnds mark={spec.optimal} />}
       <CheckStrip check={check} />
     </ListRow>
   );

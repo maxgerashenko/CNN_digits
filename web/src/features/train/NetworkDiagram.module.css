@@ -29,6 +29,8 @@
 .labels {
   position: relative;
   height: 28px;
+  overflow: hidden;
+  transition: height 80ms ease-out;
 }
 
 .label {
@@ -45,9 +47,14 @@
 }
 
 .title {
+  height: 12px;
+  overflow: hidden;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-text);
+  transition:
+    height 80ms ease-out,
+    opacity 80ms ease-out;
 }
 
 .detail {
@@ -62,6 +69,7 @@
   padding: 10px 6px;
   border-top: var(--hairline);
   font-family: var(--font-mono);
+  transition: padding 80ms ease-out;
 }
 
 .params {
@@ -79,4 +87,28 @@
 .chain {
   font-size: var(--text-label);
   color: var(--color-text-muted);
+}
+
+/* The short version. The drawing keeps its full size and every value that
+   follows the settings stays: the sizes under the drawing, the number of
+   weights and the size chain. Only the fixed names (IN, B1, ...) fold away.
+   Like the Result card it shrinks slowly and grows back fast. */
+.compact .labels {
+  height: 14px;
+}
+
+.compact .title {
+  height: 0;
+  opacity: 0;
+}
+
+.compact .footer {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.compact .labels,
+.compact .title,
+.compact .footer {
+  transition-duration: 300ms;
 }

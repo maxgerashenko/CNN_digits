@@ -47,7 +47,7 @@ function GridRow({ spec, check }: { spec: SettingSpec; check: CheckResult }) {
       {spec.control === 'slider' ? (
         <div className={styles.valueRow}>
           <div className={styles.valueControl}>
-            <SettingControl spec={spec} size="sm" />
+            <SettingControl spec={spec} size="sm" mark={spec.optimal} />
           </div>
           <Mono tone="accent" size="small" className={styles.value}>
             {formatSetting(spec.key, value)}

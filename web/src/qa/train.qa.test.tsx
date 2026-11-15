@@ -48,7 +48,7 @@ describe('every setting can be changed from the screen', () => {
       const other = spec.choices!.find((choice) => choice !== before)!;
       fireEvent.click(within(row).getByRole('button', { name: formatSetting(key, other) }));
     } else if (control === 'slider') {
-      fireEvent.change(within(row).getByRole('slider', { name: spec.label }), { target: { value: '0.3' } });
+      fireEvent.change(within(row).getByRole('slider', { name: spec.label }), { target: { value: String(spec.min! + 3 * spec.step!) } });
     } else {
       fireEvent.click(within(row).getByRole('switch', { name: spec.label }));
     }
@@ -63,7 +63,6 @@ describe('ranges hold at both ends', () => {
     ['Conv blocks', 'conv_blocks', 1, 3],
     ['Conv layers per block', 'conv_layers_per_block', 1, 3],
     ['Hidden dense layers', 'dense_layers', 0, 2],
-    ['Epochs', 'epochs', 1, 20],
   ] as const)('%s stops at %i and %i, with the buttons switched off there', (label, key, min, max) => {
     const { container } = render(<SettingsPanel />);
     const more = () => within(rowOf(container, key)).getByRole('button', { name: `${label}: more` });
@@ -88,6 +87,21 @@ describe('ranges hold at both ends', () => {
       fireEvent.change(slider, { target: { value: v } });
       expect(val('dropout')).toBeCloseTo(Number(v), 10);
     }
+  });
+
+  it('epochs slider runs 1 to 20 in steps of 1 and marks the optimal value', () => {
+    const { container } = render(<SettingsPanel />);
+    const row = rowOf(container, 'epochs');
+    const slider = within(row).getByRole('slider', { name: 'Epochs' }) as HTMLInputElement;
+    expect(slider.min).toBe('1');
+    expect(slider.max).toBe('20');
+    expect(slider.step).toBe('1');
+    for (const v of [1, 7, 20]) {
+      fireEvent.change(slider, { target: { value: String(v) } });
+      expect(val('epochs')).toBe(v);
+    }
+    expect(within(row).getByTestId('slider-mark')).toHaveTextContent('optimal 12');
+    expect(within(rowOf(container, 'dropout')).queryByTestId('slider-mark')).toBeNull();
   });
 
   it('the store refuses values the server would refuse (and cleans float noise)', () => {
