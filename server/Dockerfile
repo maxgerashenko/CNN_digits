@@ -18,6 +18,10 @@ COPY --chown=user requirements.txt ./server/requirements.txt
 # uvicorn is named here too, so the start command below always works.
 RUN pip install --no-cache-dir --user -r server/requirements.txt uvicorn
 
+# Put the MNIST data in the image, so the first training run does not wait for
+# a download and the server needs no internet to train.
+RUN python -c "import tensorflow as tf; tf.keras.datasets.mnist.load_data()"
+
 # Keep the code in a "server" folder, like in the GitHub repo. Both import
 # styles then work: "from server.model import ..." and "import model".
 COPY --chown=user . ./server/

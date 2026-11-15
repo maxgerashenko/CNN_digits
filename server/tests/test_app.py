@@ -17,7 +17,7 @@ from fastapi.testclient import TestClient
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from server.app import Backend, create_app  # noqa: E402
+from server.app import Backend, Job, create_app, max_workers_from_env, run_training  # noqa: E402
 
 DEFAULTS = {"epochs": 2, "dropout": 0.1, "learning_rate": 0.001}
 
@@ -187,6 +187,143 @@ def test_one_run_at_a_time_and_others_wait_in_line(client, trainer):
     for job in (first, second, third):
         assert wait_until_finished(client, job["job_id"])["status"] == "done"
     assert len(trainer.seen_settings) == 3
+
+
+class ThreadRunner:
+    """Stands in for `ProcessRunner`: trains in the worker's own thread, with the same messages."""
+
+    made = []
+
+    def __init__(self, backend, fail=False):
+        self.backend = backend
+        self.fail = fail
+        self.closed = False
+        ThreadRunner.made.append(self)
+
+    def run(self, settings, out_dir, on_progress):
+        if self.fail:
+            raise RuntimeError("the training process stopped. It may have run out of memory.")
+        local = Job(settings)
+
+        def progress(*args, **kwargs):
+            local.on_progress(*args, **kwargs)
+            on_progress(local.epochs[-1])
+
+        return run_training(self.backend, settings, out_dir, progress, local.epochs)
+
+    def close(self):
+        self.closed = True
+
+
+def parallel_client(trainer, max_workers, idle_seconds=60, fail=False):
+    ThreadRunner.made = []
+    backend = Backend(train=trainer.train, export=fake_export, default_settings=DEFAULTS, evaluate=fake_evaluate)
+    app = create_app(
+        backend,
+        max_workers=max_workers,
+        make_runner=lambda: ThreadRunner(backend, fail=fail),
+        idle_seconds=idle_seconds,
+    )
+    return TestClient(app)
+
+
+def wait_for(condition):
+    for _ in range(300):
+        if condition():
+            return
+        time.sleep(0.01)
+    raise AssertionError("the expected state was not reached")
+
+
+def test_two_workers_train_two_runs_at_the_same_time(trainer):
+    with parallel_client(trainer, max_workers=2) as c:
+        trainer.gate.clear()  # hold every run inside training
+        first = c.post("/train", json={}).json()
+        second = c.post("/train", json={}).json()
+        third = c.post("/train", json={}).json()
+
+        # Two runs are inside the training code together; the third waits.
+        wait_for(lambda: len(trainer.seen_settings) == 2)
+        assert c.get("/wake").json() == {"status": "ok", "busy": True, "waiting": 1}
+        assert c.get(f"/train/{third['job_id']}").json()["position"] == 1
+        assert c.get(f"/train/{first['job_id']}").json()["status"] == "running"
+        assert c.get(f"/train/{second['job_id']}").json()["status"] == "running"
+        assert len(ThreadRunner.made) == 1  # one extra worker, not more than the limit allows
+
+        trainer.gate.set()
+        for job in (first, second, third):
+            status = wait_until_finished(c, job["job_id"])
+            assert status["status"] == "done"
+            assert [e["epoch"] for e in status["epochs"]] == [1, 2]
+            assert status["results"]["test_accuracy"] == 0.975
+            assert c.get(f"/train/{job['job_id']}/model/weights.bin").content == b"\x00\x01\x02\x03"
+        assert len(trainer.seen_settings) == 3
+
+
+def test_extra_worker_sends_the_same_events_as_the_first(trainer):
+    with parallel_client(trainer, max_workers=2) as c:
+        trainer.gate.clear()
+        jobs = [c.post("/train", json={}).json() for _ in range(2)]
+        wait_for(lambda: len(trainer.seen_settings) == 2)
+        trainer.gate.set()
+        streams = [read_events(c, job["job_id"]) for job in jobs]
+    for events in streams:
+        assert [name for name, _ in events if name != "queued"] == ["started", "epoch", "epoch", "done"]
+    assert streams[0][-1][1]["results"] == streams[1][-1][1]["results"]
+
+
+def test_extra_worker_stops_when_it_has_no_work(trainer):
+    with parallel_client(trainer, max_workers=3, idle_seconds=0.05) as c:
+        trainer.gate.clear()
+        jobs = [c.post("/train", json={}).json() for _ in range(3)]
+        wait_for(lambda: len(trainer.seen_settings) == 3)
+        assert len(ThreadRunner.made) == 2
+        trainer.gate.set()
+        for job in jobs:
+            wait_until_finished(c, job["job_id"])
+        wait_for(lambda: all(runner.closed for runner in ThreadRunner.made))
+
+        # A new run after that is still trained.
+        again = c.post("/train", json={}).json()
+        assert wait_until_finished(c, again["job_id"])["status"] == "done"
+
+
+def test_one_worker_never_starts_an_extra_one(trainer):
+    with parallel_client(trainer, max_workers=1) as c:
+        trainer.gate.clear()
+        jobs = [c.post("/train", json={}).json() for _ in range(3)]
+        wait_for(lambda: len(trainer.seen_settings) == 1)
+        assert c.get("/wake").json()["waiting"] == 2
+        trainer.gate.set()
+        for job in jobs:
+            assert wait_until_finished(c, job["job_id"])["status"] == "done"
+    assert ThreadRunner.made == []
+
+
+def test_extra_worker_that_breaks_reports_an_error(trainer):
+    with parallel_client(trainer, max_workers=2, fail=True) as c:
+        trainer.gate.clear()
+        first = c.post("/train", json={}).json()
+        wait_for(lambda: len(trainer.seen_settings) == 1)
+        second = c.post("/train", json={}).json()  # goes to the extra worker, which breaks
+        status = wait_until_finished(c, second["job_id"])
+        assert status["status"] == "error"
+        assert "stopped" in status["error"]
+        assert c.get("/wake").json() == {"status": "ok", "busy": True, "waiting": 0}
+        trainer.gate.set()
+        assert wait_until_finished(c, first["job_id"])["status"] == "done"
+
+
+@pytest.mark.parametrize(
+    "value, expected",
+    [(None, 1), ("", 1), ("1", 1), ("3", 3), (" 2 ", 2), ("0", 1), ("-4", 1), ("99", 8), ("many", 1), ("2.5", 1)],
+)
+def test_train_workers_setting(monkeypatch, value, expected):
+    if value is None:
+        monkeypatch.delenv("TRAIN_WORKERS", raising=False)
+    else:
+        monkeypatch.setenv("TRAIN_WORKERS", value)
+    assert max_workers_from_env() == expected
 
 
 def test_reconnect_only_gets_missed_events(client):
