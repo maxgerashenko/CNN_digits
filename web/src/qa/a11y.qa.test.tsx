@@ -141,8 +141,6 @@ describe.each(
 
 describe('current navigation item', () => {
   const cases: [LayoutMode, string, string][] = [
-    ['phone', '/', 'Recognize'],
-    ['phone', '/train', 'Train'],
     ['tablet', '/', 'Recognize'],
     ['tablet', '/train', 'Train'],
     ['desktop', '/', 'Recognize'],
@@ -179,10 +177,10 @@ describe('keyboard and sanity', () => {
 });
 
 describe('toggles and controls', () => {
-  it('the advanced settings row is a disclosure with aria-expanded', () => {
+  it('the Advanced group is a named region that is always open', () => {
     renderApp({ route: '/train', mode: 'phone' });
-    const toggle = within(document.body).getByRole('button', { name: /Advanced settings/ });
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(within(document.body).getByRole('region', { name: 'Advanced' })).toBeInTheDocument();
+    expect(within(document.body).queryByRole('button', { name: /Advanced settings/ })).toBeNull();
   });
 
   it('a switch reports checked state and a name', () => {

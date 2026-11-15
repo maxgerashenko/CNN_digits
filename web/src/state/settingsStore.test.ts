@@ -5,14 +5,12 @@ import { useSettingsStore } from './settingsStore';
 
 beforeEach(() => {
   useSettingsStore.getState().reset();
-  useSettingsStore.getState().setAdvancedOpen(false);
 });
 const get = () => useSettingsStore.getState();
 
 describe('settingsStore', () => {
   it('starts at the defaults', () => {
     expect(get().settings).toEqual(DEFAULT_SETTINGS);
-    expect(get().advancedOpen).toBe(false);
   });
 
   it('sets one allowed value', () => {
@@ -34,10 +32,8 @@ describe('settingsStore', () => {
     expect(get().settings.epochs).toBe(before.epochs);
   });
 
-  it('reset restores defaults and toggles advanced', () => {
+  it('reset restores defaults', () => {
     get().setSetting('epochs', 4);
-    get().setAdvancedOpen(true);
-    expect(get().advancedOpen).toBe(true);
     get().reset();
     expect(get().settings).toEqual(DEFAULT_SETTINGS);
   });

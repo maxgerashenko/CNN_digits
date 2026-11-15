@@ -1,0 +1,14 @@
+.charts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-stack);
+  min-width: 0;
+  padding-bottom: 8px;
+}
+
+.heading {
+  margin-top: 6px;
+  font-size: var(--text-kpi);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}

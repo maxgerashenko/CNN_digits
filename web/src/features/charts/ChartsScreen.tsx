@@ -1,4 +1,7 @@
+import type { ReactNode } from 'react';
+
 import { Screen } from '../../components/shell';
+import { useLayoutMode } from '../../hooks/useLayoutMode';
 import { EmptyState, Legend } from '../../components/ui';
 import { useRunChecks } from '../../hooks/useRunChecks';
 import { ROUTES } from '../../routes';
@@ -16,40 +19,54 @@ export interface ChartsScreenProps {
   className?: string;
 }
 
-const LEGEND = [
+export const CHARTS_LEGEND = [
   { label: 'train', line: 'now' },
   { label: 'validation', line: 'accent' },
   { label: 'ideal', line: 'ideal' },
 ] as const;
 
-/** Raw charts of the latest run. */
-export function ChartsScreen({ className }: ChartsScreenProps) {
+export interface ChartCardsProps {
+  /** Shown between the numbers and the first chart. */
+  legend?: ReactNode;
+  /** Shown when there is no finished run. */
+  empty: ReactNode;
+}
+
+/** The cards of the latest run: numbers, curves, per digit, confusion, weights, gradients. */
+export function ChartCards({ legend, empty }: ChartCardsProps) {
   const { run, checks } = useRunChecks();
   const statusOf = (key: string) => checks.find((c) => c.key === key)?.status ?? 'new';
+  if (!run) return <>{empty}</>;
+  return (
+    <>
+      <KpiStrip run={run} />
+      {legend}
+      <CurveCard metric="accuracy" run={run} status={statusOf('train_images')} />
+      <CurveCard metric="loss" run={run} status={statusOf('learning_rate')} />
+      <PerDigitCard />
+      <ConfusionCard />
+      <KernelWeightsCard run={run} />
+      <HistogramsCard run={run} />
+      <GradientCard />
+    </>
+  );
+}
 
+/** Raw charts of the latest run, as its own screen (tablet) and as a desktop pane. */
+export function ChartsScreen({ className }: ChartsScreenProps) {
+  const phone = useLayoutMode() === 'phone';
   return (
     <Screen
       title="Raw charts"
       variant="pushed"
-      backTo={ROUTES.details}
-      backLabel="Back to run details"
+      backTo={phone ? ROUTES.training : ROUTES.train}
+      backLabel={phone ? 'Back to training' : 'Back to settings'}
       className={cx(styles.screen, className)}
     >
-      {run ? (
-        <>
-          <KpiStrip run={run} />
-          <Legend items={LEGEND} />
-          <CurveCard metric="accuracy" run={run} status={statusOf('train_images')} />
-          <CurveCard metric="loss" run={run} status={statusOf('learning_rate')} />
-          <PerDigitCard />
-          <ConfusionCard />
-          <KernelWeightsCard run={run} />
-          <HistogramsCard run={run} />
-          <GradientCard />
-        </>
-      ) : (
-        <EmptyState title="No runs yet">Train a network first. The charts show the latest run.</EmptyState>
-      )}
+      <ChartCards
+        legend={<Legend items={CHARTS_LEGEND} />}
+        empty={<EmptyState title="No runs yet">Train a network first. The charts show the latest run.</EmptyState>}
+      />
     </Screen>
   );
 }

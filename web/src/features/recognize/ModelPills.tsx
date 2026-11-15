@@ -8,11 +8,11 @@ export interface ModelPillsProps {
 }
 
 const PILLS: { source: ModelSource; label: string }[] = [
-  { source: 'saved', label: 'Saved model' },
-  { source: 'retrained', label: 'My retrained' },
+  { source: 'saved', label: 'App model' },
+  { source: 'retrained', label: 'My trained' },
 ];
 
-/** Picks which model reads the drawing. "My retrained" waits for a finished run. */
+/** Picks which model reads the drawing. "My trained" waits for a finished run. */
 export function ModelPills({ className }: ModelPillsProps) {
   const active = useModelStore((s) => s.active);
   const retrainedReady = useModelStore((s) => s.retrained.status === 'ready');

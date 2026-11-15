@@ -1,7 +1,6 @@
 import { Screen } from '../../components/shell';
-import { EmptyState, Legend, NavRow, type LegendItem } from '../../components/ui';
+import { EmptyState, Legend, type LegendItem } from '../../components/ui';
 import { useRunChecks } from '../../hooks/useRunChecks';
-import { useInPane } from '../../hooks/usePane';
 import { ROUTES } from '../../routes';
 import { BucketList } from './BucketList';
 import { ChangeFirstList } from './ChangeFirstList';
@@ -13,10 +12,9 @@ export interface DetailsScreenProps {
   className?: string;
 }
 
-/** Run details: the summary table, what changed, the change-first cards and the other settings. */
+/** Analysis: the summary table (it stays at the top on a phone), what changed, the change-first cards and the other settings. */
 export function DetailsScreen({ className }: DetailsScreenProps) {
   const { run, prev, checks } = useRunChecks();
-  const inPane = useInPane();
 
   const legend: LegendItem[] = [
     ...(prev ? [{ label: `run ${prev.number}`, line: 'accent' as const }] : []),
@@ -26,15 +24,16 @@ export function DetailsScreen({ className }: DetailsScreenProps) {
 
   return (
     <Screen
-      title="Run details"
+      title="Analysis"
       variant="pushed"
       backTo={ROUTES.train}
       backLabel="Back to settings"
       className={className}
+      pinTitle
+      pinned={run ? <RunSummaryTable /> : undefined}
     >
       {run ? (
         <>
-          <RunSummaryTable />
           <ChangedSinceCard />
           <Legend items={legend} />
           <ChangeFirstList />
@@ -46,13 +45,6 @@ export function DetailsScreen({ className }: DetailsScreenProps) {
         <EmptyState title="No runs yet">
           Train a network once. Then this screen compares the run with the ideal and says what to change first.
         </EmptyState>
-      )}
-      {!inPane && (
-        <NavRow
-          to={ROUTES.charts}
-          title="Raw charts"
-          subtitle="Curves, per digit, confusion matrix, histograms, gradients"
-        />
       )}
       <RetrainFooter />
     </Screen>

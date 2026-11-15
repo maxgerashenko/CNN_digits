@@ -2,7 +2,6 @@
 // the coders: these checks go past the tests next to the components.
 
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -35,9 +34,7 @@ function renderConfigure(mode: 'phone' | 'desktop' = 'phone') {
 }
 
 describe('every setting can be changed from the screen', () => {
-  // Advanced is open so all 13 rows are present.
   it.each(SETTING_SPECS.map((spec) => [spec.key, spec.control] as const))('%s (%s) changes and stays allowed', (key, control) => {
-    act(() => useSettingsStore.getState().setAdvancedOpen(true));
     const { container } = render(<SettingsPanel />);
     const row = rowOf(container, key);
     const spec = SETTING_SPECS.find((s) => s.key === key) as SettingSpec;
@@ -250,12 +247,11 @@ describe('configure screen: order and states', () => {
     expect(follows(layers, start)).toBe(true);
   });
 
-  it('first run: nine rows show a check marked new while Advanced is closed, thirteen once it is open', () => {
+  it('first run: all thirteen rows show a check marked new, Advanced included', () => {
     const { container } = renderConfigure();
-    expect(container.querySelectorAll('[data-status="new"]').length).toBe(9);
-    expect(container.textContent).not.toContain('last ');
-    fireEvent.click(screen.getByRole('button', { name: /Advanced settings/ }));
     expect(container.querySelectorAll('[data-status="new"]').length).toBe(13);
+    expect(container.textContent).not.toContain('last ');
+    expect(screen.queryByRole('button', { name: /Advanced settings/ })).toBeNull();
   });
 
   it('after a run: the last-run card comes before the settings and no "No runs yet" remains', () => {
@@ -269,10 +265,10 @@ describe('configure screen: order and states', () => {
     expect(container.textContent).toContain('last ');
   });
 
-  it('after a run: each visible row has its ideal line, a dashed ideal path, and a run line only where the run has 2 or more values', () => {
+  it('after a run: each row has its ideal line, a dashed ideal path, and a run line only where the run has 2 or more values', () => {
     act(() => useTrainingStore.setState({ runs: [runOne] }));
     const { container } = renderConfigure();
-    const visible = SETTING_SPECS.filter((s) => s.group !== 'Advanced');
+    const visible = SETTING_SPECS;
     expect(container.querySelectorAll('[data-setting]').length).toBe(visible.length);
     const checks = evaluateChecks({ run: runOne, prev: null, settings: runOne.settings });
     const withSeries = visible.filter((s) => checks.find((c) => c.key === s.key)!.series.length >= 2).length;
@@ -299,23 +295,10 @@ describe('configure screen: order and states', () => {
     expect(within(pane).queryAllByRole('link')).toHaveLength(0);
   });
 
-  it('Advanced settings row works from the keyboard (Enter and Space)', async () => {
-    const user = userEvent.setup();
+  it('phone: the back link leads to Recognize and the note sits under Start training', () => {
     renderConfigure();
-    const toggle = screen.getByRole('button', { name: /Advanced settings/ });
-    expect(toggle.tagName).toBe('BUTTON');
-    expect(toggle).toHaveAttribute('type', 'button');
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
-
-    act(() => toggle.focus());
-    expect(document.activeElement).toBe(toggle);
-    await user.keyboard('{Enter}');
-    expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByText('Batch size')).toBeInTheDocument();
-
-    await user.keyboard(' ');
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByText('Batch size')).toBeNull();
+    expect(screen.getByRole('link', { name: 'Back to Recognize' })).toHaveAttribute('href', '/');
+    expect(screen.getByText('Get your own model for recognition.')).toBeInTheDocument();
   });
 });
 

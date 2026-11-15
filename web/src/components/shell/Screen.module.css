@@ -19,6 +19,25 @@
   min-height: 100%;
 }
 
+/* On a phone the screen is as high as the window and scrolls inside. */
+.phone {
+  height: 100dvh;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: none;
+  overflow-anchor: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.phone > * {
+  flex-shrink: 0;
+}
+
+.snap {
+  scroll-snap-type: y proximity;
+}
+
 .header {
   position: relative;
   display: flex;
@@ -27,10 +46,22 @@
   min-height: var(--size-header);
 }
 
+.snap > .header {
+  scroll-snap-align: start;
+  scroll-margin-top: var(--space-page-top);
+}
+
 .root .title {
   font-size: var(--text-title);
   font-weight: 600;
   letter-spacing: -0.02em;
+}
+
+.root .back {
+  position: static;
+  justify-content: flex-start;
+  width: 34px;
+  margin-left: -6px;
 }
 
 .pushed {
@@ -51,14 +82,76 @@
   justify-content: center;
   width: var(--size-touch);
   height: var(--size-touch);
-  color: var(--color-accent-text);
+  color: var(--color-back);
   text-decoration: none;
+}
+
+/* Pull to reload: the spinner sits above the title and opens with the pull. */
+.pull {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: calc(-1 * var(--screen-gap));
+  color: var(--color-back);
+}
+
+.spinner {
+  flex-shrink: 0;
+  margin-bottom: 14px;
+}
+
+.spinning {
+  animation: turn 0.8s linear infinite;
+}
+
+@keyframes turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Blocks that stay at the top of a phone screen. The box lets touches through
+   where it is empty; the inner part carries the blocks and their backdrop. */
+/* Sticky offsets count from inside the padding of the screen, so the box
+   moves up by the top padding to reach the edge of the window. */
+.pinned {
+  position: sticky;
+  top: calc(-1 * var(--space-page-top));
+  z-index: 3;
+  margin: calc(-1 * var(--space-page-top)) calc(-1 * var(--space-page-x)) 0;
+  pointer-events: none;
+}
+
+.pinnedInner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--screen-gap);
+  padding: var(--space-page-top) var(--space-page-x) 10px;
+  pointer-events: auto;
+}
+
+/* The backdrop shows the page background at its place in the window, so the
+   pinned blocks hide what scrolls under them without a visible edge. */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  clip-path: inset(0);
+}
+
+.backdrop::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: var(--bg-narrow);
 }
 
 .footer {
   position: sticky;
   bottom: 0;
-  z-index: 2;
+  z-index: 4;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -68,17 +161,13 @@
   background: var(--color-bg);
 }
 
-.footerTabs {
-  padding-bottom: 0;
+.phone > .footer {
+  padding-top: 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, transparent, var(--color-bg) 45%);
+  transition: transform 220ms ease-out;
 }
 
-.tabs {
-  display: flex;
-  justify-content: center;
-  padding: 12px 0 max(14px, env(safe-area-inset-bottom));
-}
-
-/* With only the tab bar in the footer, the bar sits right under the content. */
-.footerTabs > .tabs:first-child {
-  padding-top: 0;
+.phone > .footerHidden {
+  transform: translateY(100%);
 }

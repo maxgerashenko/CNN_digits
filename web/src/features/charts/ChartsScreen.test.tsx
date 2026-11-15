@@ -17,7 +17,7 @@ describe('ChartsScreen', () => {
 
   it('has a back link to run details', () => {
     renderApp({ route: '/train/charts' });
-    expect(screen.getByRole('link', { name: 'Back to run details' })).toHaveAttribute('href', '/train/details');
+    expect(screen.getByRole('link', { name: 'Back to training' })).toHaveAttribute('href', '/train/run');
   });
 
   it('shows KPI strip, legend and curve cards for the latest run', () => {

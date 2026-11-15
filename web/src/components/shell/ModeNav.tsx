@@ -7,7 +7,7 @@ import styles from './ModeNav.module.css';
 
 export interface ModeNavProps {
   /**
-   * 'pill'   = the two tabs side by side in a dark pill (phone tab bar, tablet header).
+   * 'pill'   = the two tabs side by side in a dark pill (tablet header).
    * 'column' = the two tabs under each other (desktop rail).
    */
   shape: 'pill' | 'column';
@@ -19,7 +19,7 @@ const TABS = [
   { id: 'train', label: 'Train', to: ROUTES.train, Icon: TrainIcon },
 ] as const;
 
-/** The Recognize / Train switch. The same component in all three layouts. */
+/** The Recognize / Train switch of the tablet and desktop layouts. A phone has none. */
 export function ModeNav({ shape, className }: ModeNavProps) {
   const active = tabFor(useLocation().pathname);
   return (

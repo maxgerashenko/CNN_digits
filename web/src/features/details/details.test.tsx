@@ -32,7 +32,7 @@ describe('DetailsScreen', () => {
     expect(within(table).getByText('Val accuracy')).toBeInTheDocument();
     expect(screen.getByText('Changed since run 1')).toBeInTheDocument();
     expect(screen.getByText(/Only one setting changed/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Raw charts/ })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Raw charts/ })).toBeNull();
     expect(screen.getByText('Keep')).toBeInTheDocument();
   });
 
@@ -60,12 +60,14 @@ describe('DetailsScreen', () => {
     setRuns([runOne]);
     useTrainingStore.setState({ server: { status: 'ready', text: '' } });
     renderApp({ route: '/train/details' });
-    const button = screen.getByRole('button', { name: /^Retrain with / });
+    // On the phone the button puts the change into the form and opens the settings.
+    const button = screen.getByRole('link', { name: /^Retrain with / });
     expect(button).toHaveTextContent('Retrain with Epochs 4');
-    expect(screen.getByText(/Change one setting per run/)).toBeInTheDocument();
-    expect(button).toBeEnabled();
+    expect(screen.getByText('Change one setting per run to see its effect.')).toBeInTheDocument();
     await userEvent.click(button);
     expect(useSettingsStore.getState().settings.epochs).toBe(4);
+    expect(useTrainingStore.getState().phase).toBe('idle');
+    expect(screen.getByRole('heading', { level: 1, name: 'Train' })).toBeInTheDocument();
   });
 
   it('hides Raw charts link in a pane', () => {

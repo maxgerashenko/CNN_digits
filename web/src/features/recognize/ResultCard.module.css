@@ -3,20 +3,49 @@
   min-height: 0;
 }
 
+/* The phone card: 192px high, and 96px once the screen is scrolled. It
+   shrinks slowly and grows back fast. */
 .bars {
-  flex: 1 1 auto;
-  min-height: 170px;
-  gap: 20px;
+  flex: 0 0 auto;
+  height: 192px;
+  gap: 16px;
   padding: var(--space-card);
+  overflow: hidden;
+  transition: height 80ms ease-out;
+}
+
+.bars.small {
+  height: 96px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  transition-duration: 450ms;
 }
 
 .side {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  flex: 0 0 92px;
-  width: 92px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 16px;
   min-width: 0;
+}
+
+.barsDigit {
+  font-size: 7rem; /* 112px */
+  line-height: 1;
+  transition: font-size 80ms ease-out;
+}
+
+.small .barsDigit {
+  font-size: 3.75rem; /* 60px */
+  transition-duration: 450ms;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  width: 56px;
 }
 
 .digit {
@@ -76,7 +105,7 @@
 
 .problem {
   flex: 1 1 auto;
-  min-height: 120px;
+  min-height: 96px;
   align-items: center;
   padding: var(--space-card);
 }

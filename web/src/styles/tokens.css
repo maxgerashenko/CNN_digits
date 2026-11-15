@@ -25,6 +25,7 @@
   /* Accent */
   --color-accent: #7c63f5; /* fills: top bar, progress, slider, goal line, "run 1" */
   --color-accent-text: #a796ff; /* small labels, links, values */
+  --color-back: #8e79ff; /* back arrow, pull-to-reload spinner */
   --color-accent-soft: #cfc6ff; /* link hover, text on the small "Set" button */
   --gradient-accent: linear-gradient(90deg, #5b43d6, #8e79ff); /* active tab, main button */
   --color-on-accent: #ffffff;

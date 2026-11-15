@@ -8,11 +8,11 @@ import { useTrainingStore } from '../../state/trainingStore';
 import styles from './AppShell.module.css';
 import { Rail } from './Rail';
 
-const APP_NAME = 'Digit recognizer';
+const APP_NAME = 'CNN Digit AI';
 
 /**
  * The outer frame, chosen by the layout:
- *   phone   - the page background; each screen brings its own header and tab bar
+ *   phone   - the page background; each screen brings its own header and buttons
  *   tablet  - the wide background; each page brings its header with the tab switch
  *   desktop - the rail on the left, the page's panes on the right
  */
