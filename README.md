@@ -55,15 +55,35 @@ npm test          # unit tests for the app, then the training-server tests
 npm run build     # type check, then build the app into web/dist
 ```
 
-What you see today:
+What you see:
 
-- **Recognize tab:** it says the saved model is missing. The model files `model.json` and `weights.bin` are not in the repo yet. Put them in `web/public/model/`. Make them from a trained Keras model with:
+- **Recognize tab:** it uses the saved model in `web/public/model/` (`model.json` and `weights.bin`). To replace it, export a trained Keras model:
 
   ```
   python server/export.py <model.keras> web/public/model
   ```
 
-- **Train tab:** it says training is not set up. Training needs the address of the training server. Copy `web/.env.example` to `web/.env.local` and set `VITE_TRAINING_SERVER_URL` to that address, without a slash at the end. Restart `npm run dev` after you change it.
+  Then update `SAVED_MODEL_FACTS` in `web/src/config.ts` with the new model's test results.
+
+- **Train tab:** without a training server it says training is not set up. Copy `web/.env.example` to `web/.env.local` and set `VITE_TRAINING_SERVER_URL` to the server's address, without a slash at the end. For the published site the address comes from the repository variable `VITE_TRAINING_SERVER_URL`.
+
+## Run the training server on a Mac
+
+Training needs a server. The published site uses one that runs on a Mac, in a Docker container, behind an ngrok tunnel. Training works only while it runs.
+
+```
+scripts/mac-server.sh start https://your-name.ngrok-free.dev   # leave the terminal open; Ctrl+C stops it
+scripts/mac-server.sh status
+scripts/mac-server.sh stop
+```
+
+- Needs Docker Desktop running and ngrok signed in. The address is your ngrok domain; it must be the same as `VITE_TRAINING_SERVER_URL`.
+- The container gets no folders of the Mac and listens on the Mac only. Only the tunnel reaches it.
+- The Mac must stay awake with the lid open. The script keeps it awake while it runs.
+- Anyone who knows the address can start training runs, so run the server only when you need it.
+- The free ngrok plan shows browsers a warning page. The app sends the header `ngrok-skip-browser-warning` with each request to pass it (`web/src/api/serverFetch.ts`).
+
+The same `server/Dockerfile` runs on a cloud host (a Hugging Face Docker Space, Google Cloud Run). To move there, deploy it and change `VITE_TRAINING_SERVER_URL`.
 
 ## How to run the notebook
 
