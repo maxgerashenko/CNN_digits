@@ -68,6 +68,9 @@ SETTING_CHOICES = {
 # improved for this many epochs in a row (the notebook's value).
 EARLY_STOPPING_PATIENCE = 3
 
+# How many training images the gradient sizes are measured on after each epoch.
+GRADIENT_BATCH_SIZE = 256
+
 # Settings with a range (min, max), both ends allowed.
 SETTING_RANGES = {
     "dropout": (0.0, 0.5),
@@ -268,28 +271,72 @@ def load_data():
 def evaluate(model):
     """Check the model on the 10,000 MNIST test images.
 
-    Returns {"test_accuracy": 0.9958, "mistakes": 42, "test_images": 10000}.
+    Returns {"test_accuracy": 0.9958, "mistakes": 42, "test_images": 10000,
+             "confusion": [[...10 numbers...], ...10 rows...]}.
+
+    "confusion" counts the test images: row = the digit in the image,
+    column = the digit the model read. The diagonal holds the right answers.
     """
     _, (test_images, test_labels) = load_data()
     probabilities = model.predict(test_images, batch_size=256, verbose=0)
     predictions = np.argmax(probabilities, axis=1)
     mistakes = int(np.sum(predictions != test_labels))
     total = int(len(test_labels))
+    confusion = np.zeros((OUTPUT_UNITS, OUTPUT_UNITS), dtype=np.int64)
+    np.add.at(confusion, (np.asarray(test_labels).astype(np.int64).reshape(-1), predictions), 1)
     return {
         "test_accuracy": (total - mistakes) / total,
         "mistakes": mistakes,
         "test_images": total,
+        "confusion": confusion.tolist(),
+    }
+
+
+def gradient_sizes(model, images, labels):
+    """Measure how large the loss gradient is for each layer that has weights.
+
+    Returns {"conv 1": 0.12, "conv 2": 0.08, "dense 1": 0.05, "output": 0.2}:
+    the length (L2 norm) of the gradient of the loss with respect to the
+    layer's kernel, on the given images. Convolution and dense layers are
+    numbered from the input; the last dense layer is "output".
+
+    The model is used as at inference: no dropout, no augmentation.
+    """
+    named = []
+    conv = dense = 0
+    for layer in model.layers:
+        if isinstance(layer, tf.keras.layers.Conv2D):
+            conv += 1
+            named.append((f"conv {conv}", layer.kernel))
+        elif isinstance(layer, tf.keras.layers.Dense):
+            dense += 1
+            named.append((f"dense {dense}", layer.kernel))
+    if dense:
+        named[-1] = ("output", named[-1][1])
+
+    with tf.GradientTape() as tape:
+        probabilities = model(tf.convert_to_tensor(images), training=False)
+        loss = tf.reduce_mean(
+            tf.keras.losses.sparse_categorical_crossentropy(labels, probabilities)
+        )
+    gradients = tape.gradient(loss, [kernel for _, kernel in named])
+    return {
+        name: float(tf.norm(gradient))
+        for (name, _), gradient in zip(named, gradients)
+        if gradient is not None
     }
 
 
 class _ProgressCallback(tf.keras.callbacks.Callback):
     """Calls progress_callback with one plain dict after each epoch."""
 
-    def __init__(self, progress_callback, epochs, should_stop=None):
+    def __init__(self, progress_callback, epochs, should_stop=None, gradient_batch=None):
         super().__init__()
         self.progress_callback = progress_callback
         self.epochs = epochs
         self.should_stop = should_stop
+        # (images, labels) on which the gradient sizes are measured after each epoch.
+        self.gradient_batch = gradient_batch
         self.stopped_early = False
         self.started = None
 
@@ -303,17 +350,18 @@ class _ProgressCallback(tf.keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
-        self.progress_callback(
-            {
-                "epoch": epoch + 1,
-                "epochs": self.epochs,
-                "loss": float(logs.get("loss", float("nan"))),
-                "accuracy": float(logs.get("accuracy", float("nan"))),
-                "val_loss": float(logs.get("val_loss", float("nan"))),
-                "val_accuracy": float(logs.get("val_accuracy", float("nan"))),
-                "seconds": time.perf_counter() - self.started,
-            }
-        )
+        progress = {
+            "epoch": epoch + 1,
+            "epochs": self.epochs,
+            "loss": float(logs.get("loss", float("nan"))),
+            "accuracy": float(logs.get("accuracy", float("nan"))),
+            "val_loss": float(logs.get("val_loss", float("nan"))),
+            "val_accuracy": float(logs.get("val_accuracy", float("nan"))),
+        }
+        if self.gradient_batch is not None:
+            progress["gradients"] = gradient_sizes(self.model, *self.gradient_batch)
+        progress["seconds"] = time.perf_counter() - self.started
+        self.progress_callback(progress)
 
 
 def train_with_results(settings=None, progress_callback=None, should_stop=None):
@@ -325,13 +373,18 @@ def train_with_results(settings=None, progress_callback=None, should_stop=None):
 
     progress_callback, if given, is called after each epoch with a dict:
         {"epoch": 1, "epochs": 2, "loss": ..., "accuracy": ...,
-         "val_loss": ..., "val_accuracy": ..., "seconds": ...}
-    val_* are measured on the test set, as in the notebook. If the callback
+         "val_loss": ..., "val_accuracy": ...,
+         "gradients": {"conv 1": ..., "dense 1": ..., "output": ...},
+         "seconds": ...}
+    val_* are measured on the test set, as in the notebook. "gradients" is the
+    gradient size per layer (see gradient_sizes), measured on the first
+    GRADIENT_BATCH_SIZE training images. If the callback
     raises an exception, training stops and the exception reaches the caller.
 
     Returns (model, results). results is a plain dict:
         {"settings": {...all 13...},
          "test_accuracy": 0.975, "mistakes": 250, "test_images": 10000,
+         "confusion": [[...], ...],  # see evaluate
          "training_seconds": 61.2, "parameters": 219162,
          "stopped_early": False,     # True when should_stop ended the run
          "no_more_progress": False,  # True when the run ended before its last
@@ -354,7 +407,11 @@ def train_with_results(settings=None, progress_callback=None, should_stop=None):
         if progress_callback is not None:
             progress_callback(progress)
 
-    progress = _ProgressCallback(on_epoch, s["epochs"], should_stop)
+    gradient_batch = (
+        train_images[:GRADIENT_BATCH_SIZE],
+        train_labels[:GRADIENT_BATCH_SIZE],
+    )
+    progress = _ProgressCallback(on_epoch, s["epochs"], should_stop, gradient_batch)
     # Like the notebook: stop when the validation loss has not improved for
     # EARLY_STOPPING_PATIENCE epochs in a row, and keep the best epoch's weights.
     early_stopping = tf.keras.callbacks.EarlyStopping(

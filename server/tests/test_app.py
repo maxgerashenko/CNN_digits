@@ -54,7 +54,8 @@ def fake_export(model, out_dir):
 
 
 def fake_evaluate(model):
-    return {"test_accuracy": 0.975, "mistakes": 250, "test_images": 10000}
+    confusion = [[1000 if row == column else 0 for column in range(10)] for row in range(10)]
+    return {"test_accuracy": 0.975, "mistakes": 250, "test_images": 10000, "confusion": confusion}
 
 
 @pytest.fixture(autouse=True)
