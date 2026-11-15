@@ -66,17 +66,17 @@ describe('ranges hold at both ends', () => {
     ['Conv blocks', 'conv_blocks', 1, 3],
     ['Conv layers per block', 'conv_layers_per_block', 1, 3],
     ['Hidden dense layers', 'dense_layers', 0, 2],
-    ['Epochs', 'epochs', 1, 5],
+    ['Epochs', 'epochs', 1, 20],
   ] as const)('%s stops at %i and %i, with the buttons switched off there', (label, key, min, max) => {
     const { container } = render(<SettingsPanel />);
     const more = () => within(rowOf(container, key)).getByRole('button', { name: `${label}: more` });
     const less = () => within(rowOf(container, key)).getByRole('button', { name: `${label}: less` });
 
-    for (let i = 0; i < 10; i++) if (!more().hasAttribute('disabled')) fireEvent.click(more());
+    for (let i = 0; i < 25; i++) if (!more().hasAttribute('disabled')) fireEvent.click(more());
     expect(val(key)).toBe(max);
     expect(more()).toBeDisabled();
 
-    for (let i = 0; i < 10; i++) if (!less().hasAttribute('disabled')) fireEvent.click(less());
+    for (let i = 0; i < 25; i++) if (!less().hasAttribute('disabled')) fireEvent.click(less());
     expect(val(key)).toBe(min);
     expect(less()).toBeDisabled();
   });
@@ -96,7 +96,7 @@ describe('ranges hold at both ends', () => {
   it('the store refuses values the server would refuse (and cleans float noise)', () => {
     const before = { ...useSettingsStore.getState().settings };
     const bad: [SettingKey, unknown][] = [
-      ['epochs', 6],
+      ['epochs', 21],
       ['epochs', 0],
       ['conv_blocks', 0],
       ['conv_blocks', 4],

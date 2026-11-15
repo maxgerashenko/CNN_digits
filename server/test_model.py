@@ -167,7 +167,7 @@ def test_augmentation_layer_has_a_fixed_name():
         {"dropout": 0.6},
         {"dropout": -0.1},
         {"learning_rate": 0.5},
-        {"epochs": 6},
+        {"epochs": 21},
         {"epochs": 0},
         {"epochs": 1.5},
         {"batch_norm": "yes"},

@@ -41,7 +41,7 @@ DEFAULT_SETTINGS = {
     "dense_units": 128,          # size of each hidden dense layer
     "dropout": 0.1,              # 0 to 0.5
     "learning_rate": 0.001,      # 0.0001, 0.001, 0.01
-    "epochs": 2,                 # 1 to 5
+    "epochs": 2,                 # 1 to 20
     # Advanced
     "batch_norm": True,          # on / off
     "batch_size": 32,            # 32, 64, 128
@@ -62,10 +62,14 @@ SETTING_CHOICES = {
     "augmentation": (0, 0.05, 0.1),
 }
 
+# Training ends before the last epoch when the validation loss has not
+# improved for this many epochs in a row (the notebook's value).
+EARLY_STOPPING_PATIENCE = 3
+
 # Settings with a range (min, max), both ends allowed.
 SETTING_RANGES = {
     "dropout": (0.0, 0.5),
-    "epochs": (1, 5),
+    "epochs": (1, 20),
     "train_images": (5000, 60000),
 }
 
@@ -307,7 +311,9 @@ def train_with_results(settings=None, progress_callback=None, should_stop=None):
         {"settings": {...all 13...},
          "test_accuracy": 0.975, "mistakes": 250, "test_images": 10000,
          "training_seconds": 61.2, "parameters": 219162,
-         "stopped_early": False,
+         "stopped_early": False,     # True when should_stop ended the run
+         "no_more_progress": False,  # True when the run ended before its last
+                                     # epoch because it stopped improving
          "history": [one progress dict per finished epoch]}
     """
     s = validate_settings(settings)
@@ -327,6 +333,13 @@ def train_with_results(settings=None, progress_callback=None, should_stop=None):
             progress_callback(progress)
 
     progress = _ProgressCallback(on_epoch, s["epochs"], should_stop)
+    # Like the notebook: stop when the validation loss has not improved for
+    # EARLY_STOPPING_PATIENCE epochs in a row, and keep the best epoch's weights.
+    early_stopping = tf.keras.callbacks.EarlyStopping(
+        monitor="val_loss",
+        patience=EARLY_STOPPING_PATIENCE,
+        restore_best_weights=True,
+    )
     started = time.perf_counter()
     model.fit(
         train_images,
@@ -334,7 +347,7 @@ def train_with_results(settings=None, progress_callback=None, should_stop=None):
         validation_data=(test_images, test_labels),
         epochs=s["epochs"],
         batch_size=s["batch_size"],
-        callbacks=[progress],
+        callbacks=[progress, early_stopping],
         verbose=0,
     )
     training_seconds = time.perf_counter() - started
@@ -345,6 +358,7 @@ def train_with_results(settings=None, progress_callback=None, should_stop=None):
         "training_seconds": training_seconds,
         "parameters": int(model.count_params()),
         "stopped_early": progress.stopped_early,
+        "no_more_progress": early_stopping.stopped_epoch > 0,
         "history": history,
     }
     return model, results

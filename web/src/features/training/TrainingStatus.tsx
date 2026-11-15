@@ -51,7 +51,8 @@ export function TrainingStatus({ className }: TrainingStatusProps) {
       value = 1;
       break;
     case 'done':
-      left = 'Training done';
+      // The server ends a run before its last epoch when it has stopped improving.
+      left = finished > 0 && finished < total ? `Stopped early after epoch ${finished} of ${total}: no more progress` : 'Training done';
       right = finished > 0 ? `${Math.round(epochs[finished - 1].seconds)} s` : '';
       value = 1;
       break;
