@@ -1,11 +1,12 @@
-import { EmptyState, GlassCard, Mono, SectionHeading } from '../../components/ui';
+import { GlassCard, Mono, SectionHeading } from '../../components/ui';
 import { cx } from '../../lib/cx';
-import { selectLatestRun, useTrainingStore } from '../../state/trainingStore';
-import type { WeightTag } from '../../types';
+import type { RunRecord, WeightTag } from '../../types';
 import { HistogramShape } from './HistogramShape';
+import { NoWeights } from './NoWeights';
 import styles from './HistogramsCard.module.css';
 
 export interface HistogramsCardProps {
+  run: RunRecord;
   className?: string;
 }
 
@@ -62,19 +63,16 @@ function formatRange(value: number): string {
 }
 
 /** One ridge per kind of weight. The server sends only the final weights, so there is one epoch, the last. */
-export function HistogramsCard({ className }: HistogramsCardProps) {
-  const run = useTrainingStore(selectLatestRun);
-  const analysis = run?.analysis ?? null;
-  const batchNorm = run?.settings.batch_norm ?? true;
+export function HistogramsCard({ run, className }: HistogramsCardProps) {
+  const analysis = run.analysis ?? null;
+  const batchNorm = run.settings.batch_norm;
   const tags = analysis === null ? [] : analysis.tags.filter((t) => batchNorm || !COPY[t.tag].batchNorm);
 
   if (analysis === null || tags.length === 0) {
     return (
       <GlassCard className={cx(styles.card, className)}>
         <h2 className={styles.heading}>{TITLE}</h2>
-        <EmptyState surface="plain" title="Not measured">
-          The weights of the trained model are not available, so there is nothing to draw yet. Finish a training run first.
-        </EmptyState>
+        <NoWeights />
       </GlassCard>
     );
   }

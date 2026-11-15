@@ -36,7 +36,7 @@ function seedRuns() {
   act(() => {
     useTrainingStore.setState({
       runs: [runOne, runTwo],
-      phase: 'idle',
+      phase: 'done',
       jobSettings: runTwo.settings,
     });
   });

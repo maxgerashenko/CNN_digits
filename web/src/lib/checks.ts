@@ -36,6 +36,24 @@ export type CheckStatus = 'new' | 'ok' | 'improve' | 'unmeasured';
 export type CheckBucket = 'first' | 'later' | 'keep' | 'unmeasured';
 export type CheckAction = 'raise' | 'lower' | 'switch';
 
+/** Colour of a status word. Matches the tones of the `Mono` component. */
+export type StatusTone = 'ok' | 'warn' | 'muted';
+
+/** The word shown for each check status, and its colour. The one copy for every screen. */
+export const STATUS_WORD: Record<CheckStatus, { text: string; tone: StatusTone }> = {
+  new: { text: 'new', tone: 'muted' },
+  ok: { text: 'ok', tone: 'ok' },
+  improve: { text: 'improve', tone: 'warn' },
+  unmeasured: { text: 'not measured', tone: 'muted' },
+};
+
+/** The word shown for each bucket of the Run details screen ("Try later", "Keep", "Not measured"). */
+export const BUCKET_WORD: Record<Exclude<CheckBucket, 'first'>, { text: string; tone: StatusTone }> = {
+  later: { text: 'later', tone: 'warn' },
+  keep: { text: 'keep', tone: 'ok' },
+  unmeasured: STATUS_WORD.unmeasured,
+};
+
 export interface CheckNumbers {
   /** Name on the "Change first" card, for example "val loss at the end". */
   name: string;

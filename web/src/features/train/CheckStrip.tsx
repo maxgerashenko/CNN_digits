@@ -1,14 +1,11 @@
 import { Mono } from '../../components/ui';
-import type { CheckResult } from '../../lib/checks';
+import { STATUS_WORD, type CheckResult } from '../../lib/checks';
 import { IDEAL_SPARK, sparkPath } from '../../lib/curves';
 import styles from './CheckStrip.module.css';
 
 export interface CheckStripProps {
   check: CheckResult;
 }
-
-const STATUS_WORD = { new: 'new', ok: 'ok', improve: 'improve', unmeasured: 'not measured' } as const;
-const STATUS_TONE = { new: 'muted', ok: 'ok', improve: 'warn', unmeasured: 'muted' } as const;
 
 /** Under a setting: the ideal shape, the run's line, what is checked, ideal against last, and the verdict. */
 export function CheckStrip({ check }: CheckStripProps) {
@@ -29,8 +26,8 @@ export function CheckStrip({ check }: CheckStripProps) {
         </Mono>
         {check.status === 'unmeasured' && check.reason && <span className={styles.reason}>{check.reason}</span>}
       </div>
-      <Mono tone={STATUS_TONE[check.status]} size="label" className={styles.status}>
-        {STATUS_WORD[check.status]}
+      <Mono tone={STATUS_WORD[check.status].tone} size="label" className={styles.status}>
+        {STATUS_WORD[check.status].text}
       </Mono>
     </div>
   );
