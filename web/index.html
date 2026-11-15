@@ -9,6 +9,15 @@
       name="description"
       content="Draw a digit and see how a small convolutional network reads it. Retrain the network with your own settings."
     />
+    <!-- Added to the Home Screen (iPad, iPhone, Android) the app opens full screen, without the browser's bars. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Digits" />
+    <!-- A black status bar above the page, so the page needs no room for it. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <title>Digit recognizer</title>
   </head>
   <body>
