@@ -31,7 +31,13 @@ export function runInferenceNow(): void {
   } else if (blank) {
     useInferenceStore.setState({ status: 'empty', result: null });
   } else {
-    useInferenceStore.setState({ status: 'ready', result: slot.model.infer(pixels) });
+    try {
+      useInferenceStore.setState({ status: 'ready', result: slot.model.infer(pixels) });
+    } catch (error) {
+      // Never leave the answer to an older drawing on screen: show no answer instead.
+      console.error('Reading the drawing failed.', error);
+      useInferenceStore.setState({ status: 'empty', result: null });
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 import { GlassCard, LineChart, Mono } from '../../components/ui';
 import type { ChartLine } from '../../components/ui/LineChart';
-import type { CheckStatus } from '../../lib/checks';
+import { STATUS_WORD, type CheckStatus } from '../../lib/checks';
 import { cx } from '../../lib/cx';
 import { epochSeries, extent, idealCurve } from '../../lib/curves';
 import { formatAccuracy, formatLoss } from '../../lib/format';
@@ -15,13 +15,6 @@ export interface CurveCardProps {
   status: CheckStatus;
   className?: string;
 }
-
-const STATUS_WORD: Record<CheckStatus, { text: string; tone: 'ok' | 'warn' | 'muted' } | null> = {
-  new: null,
-  ok: { text: 'ok', tone: 'ok' },
-  improve: { text: 'improve', tone: 'warn' },
-  unmeasured: { text: 'not measured', tone: 'muted' },
-};
 
 const last = (list: readonly number[]) => list[list.length - 1];
 
@@ -50,7 +43,8 @@ export function CurveCard({ metric, run, status, className }: CurveCardProps) {
   const train = run.epochs.map((e) => (isAccuracy ? e.accuracy : e.loss));
   const val = run.epochs.map((e) => (isAccuracy ? e.valAccuracy : e.valLoss));
   const title = isAccuracy ? 'Accuracy, train vs validation' : 'Loss, train vs validation';
-  const word = STATUS_WORD[status];
+  // No word in the corner before the first run.
+  const word = status === 'new' ? null : STATUS_WORD[status];
   const hasData = train.length > 0;
 
   const lastEpoch = Math.max(2, run.epochs.length);

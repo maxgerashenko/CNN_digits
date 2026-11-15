@@ -34,14 +34,12 @@ describe('cards without server data', () => {
 
 describe('KernelWeightsCard', () => {
   it('shows an empty state without analysis', () => {
-    withRun({ ...runOne, analysis: null });
-    render(<KernelWeightsCard />);
+    render(<KernelWeightsCard run={{ ...runOne, analysis: null }} />);
     expect(screen.getByText('Not measured')).toBeInTheDocument();
   });
 
   it('shows one histogram per layer', () => {
-    withRun(runOne);
-    render(<KernelWeightsCard />);
+    render(<KernelWeightsCard run={runOne} />);
     const layers = runOne.analysis!.layers;
     expect(layers.length).toBeGreaterThan(0);
     expect(screen.getAllByRole('img')).toHaveLength(layers.length);
@@ -50,14 +48,13 @@ describe('KernelWeightsCard', () => {
 });
 
 describe('HistogramsCard', () => {
-  it('shows an empty state without a run', () => {
-    render(<HistogramsCard />);
+  it('shows an empty state when the run holds no weights', () => {
+    render(<HistogramsCard run={{ ...runOne, analysis: null }} />);
     expect(screen.getByText('Not measured')).toBeInTheDocument();
   });
 
   it('shows one row per tag with batch norm on, and says last epoch only', () => {
-    withRun(runOne);
-    render(<HistogramsCard />);
+    render(<HistogramsCard run={runOne} />);
     const tags = runOne.analysis!.tags;
     expect(screen.getAllByRole('img')).toHaveLength(tags.length);
     expect(screen.getByText('last epoch only')).toBeInTheDocument();
@@ -65,8 +62,7 @@ describe('HistogramsCard', () => {
   });
 
   it('leaves out the batch norm rows with batch norm off', () => {
-    withRun({ ...runOne, settings: settingsWith({ batch_norm: false }), analysis: makeAnalysis() });
-    render(<HistogramsCard />);
+    render(<HistogramsCard run={{ ...runOne, settings: settingsWith({ batch_norm: false }), analysis: makeAnalysis() }} />);
     expect(screen.queryByText('gamma')).toBeNull();
     expect(screen.queryByText('beta')).toBeNull();
     expect(screen.getByText('kernel')).toBeInTheDocument();

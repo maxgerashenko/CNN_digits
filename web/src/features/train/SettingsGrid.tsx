@@ -2,7 +2,7 @@ import { Fragment } from 'react';
 
 import { GlassCard, Mono, SectionHeading, type Tone } from '../../components/ui';
 import { useRunChecks } from '../../hooks/useRunChecks';
-import type { CheckResult } from '../../lib/checks';
+import { BUCKET_WORD, STATUS_WORD, type CheckResult } from '../../lib/checks';
 import { cx } from '../../lib/cx';
 import { formatSetting, specsInGroup, type SettingSpec } from '../../lib/settings';
 import { useSettingsStore } from '../../state/settingsStore';
@@ -19,13 +19,14 @@ const COLUMNS = [['Layers', 'Architecture'], ['Training', 'Advanced']] as const;
 function verdictOf(check: CheckResult): { word: string; tone: Tone } {
   switch (check.status) {
     case 'ok':
-      return { word: 'keep', tone: 'ok' };
+      return { word: BUCKET_WORD.keep.text, tone: BUCKET_WORD.keep.tone };
     case 'improve':
-      return { word: check.bucket === 'later' ? 'later' : (check.action ?? 'later'), tone: 'warn' };
-    case 'unmeasured':
-      return { word: 'not measured', tone: 'muted' };
+      return {
+        word: check.bucket === 'later' ? BUCKET_WORD.later.text : (check.action ?? BUCKET_WORD.later.text),
+        tone: BUCKET_WORD.later.tone,
+      };
     default:
-      return { word: 'new', tone: 'muted' };
+      return { word: STATUS_WORD[check.status].text, tone: STATUS_WORD[check.status].tone };
   }
 }
 

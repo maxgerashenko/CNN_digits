@@ -1,4 +1,4 @@
-import { formatProbability } from '../../lib/format';
+import { argMax, formatPercent, formatProbability } from '../../lib/format';
 import { cx } from '../../lib/cx';
 import styles from './AnswerBars.module.css';
 
@@ -12,18 +12,9 @@ export interface AnswerBarsProps {
 
 /** Ten horizontal bars, one per digit, the top one in the accent colour. */
 export function AnswerBars({ probs, variant = 'screen', className }: AnswerBarsProps) {
-  let top = -1;
-  if (probs) {
-    let best = -1;
-    probs.forEach((p, i) => {
-      if (p > best) {
-        best = p;
-        top = i;
-      }
-    });
-  }
+  const top = probs ? argMax(probs) : -1;
   const label = probs
-    ? `Probability for each digit 0 to 9; ${top} is highest at ${(probs[top] * 100).toFixed(1)} percent`
+    ? `Probability for each digit 0 to 9; ${top} is highest at ${formatPercent(probs[top]).replace('%', ' percent')}`
     : 'Probability for each digit 0 to 9; nothing to read yet';
 
   return (

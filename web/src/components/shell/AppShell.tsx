@@ -20,15 +20,15 @@ export function AppShell() {
   const mode = useLayoutMode();
   const { pathname } = useLocation();
   const tab = tabFor(pathname);
-  // Training has nothing to show before a run was started in this tab.
-  const neverRan = useTrainingStore((state) => state.phase === 'idle' && state.jobSettings === null);
+  // Training has nothing to show while idle: before the first run, and after "Back to settings".
+  const idle = useTrainingStore((state) => state.phase === 'idle');
 
   useEffect(() => {
     document.title = `${tab === 'train' ? 'Train' : 'Recognize'} · ${APP_NAME}`;
   }, [tab]);
 
   // A screen that is already on the page in this layout has no address of its own.
-  const target = redirectFor(pathname, mode) ?? (pathname === ROUTES.training && neverRan ? ROUTES.train : null);
+  const target = redirectFor(pathname, mode) ?? (pathname === ROUTES.training && idle ? ROUTES.train : null);
   if (target) return <Navigate to={target} replace />;
 
   return (
