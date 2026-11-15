@@ -213,7 +213,7 @@ Five zustand stores in `src/state/`. Components read with selectors and call the
 
 `phase` goes: `idle` to `waking` (server starting) to `queued` (`position` = place in line) to `running` (one `EpochPoint` per finished epoch) to `finishing` (downloading the new model) to `done`. From any busy phase it can go to `error` (`error` holds a sentence) or `stopped`. `reset()` returns to `idle` and keeps `runs`.
 
-When a run is done the store loads the model from the server, works out the weight analysis, appends a `RunRecord` (`id`, `number`, `settings`, `epochs`, `results`, `analysis`, `params`) and calls `setRetrained`. The retrained model becomes the reading model only when the visitor presses "Use my retrained model" (`setActive('retrained')`, then go to `/`).
+When a run is done the store loads the model from the server, works out the weight analysis, appends a `RunRecord` (`id`, `number`, `settings`, `epochs`, `results`, `analysis`, `params`) and calls `setRetrained`. There is one retrained slot, and the newest run's model takes it (the one before is disposed). While the saved model is reading, the retrained model becomes the reading model only when the visitor presses "Use my retrained model" (`setActive('retrained')`, then go to `/`). If "My retrained" is already active, the newest run's model reads from the moment it is loaded, with no press.
 
 Start-up, in `App`: `useModelStore.getState().loadSaved()`, `useTrainingStore.getState().wake()`, `startInference()`.
 

@@ -495,12 +495,13 @@ describe('QA: retrain footer', () => {
     expect(useTrainingStore.getState().phase).toBe('waking');
   });
 
-  it('is disabled while a run is in progress', () => {
+  it('while a run is in progress it reads "Training, view progress" and links to the run', () => {
     configureReady();
     setRuns([runOne]);
     setTraining({ phase: 'running', jobSettings: settings2, epochs: [] });
     renderApp({ route: '/train/details' });
-    expect(screen.getByRole('button', { name: 'Retrain with Epochs 4' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Retrain with Epochs 4' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'Training, view progress' })).toHaveAttribute('href', '/train/run');
   });
 
   it('without a server address it is disabled and says training is not set up', () => {

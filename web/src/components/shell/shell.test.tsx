@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { LayoutModeProvider } from '../../hooks/useLayoutMode';
 import { renderApp, resetStores } from '../../test/utils';
 import { useTrainingStore } from '../../state/trainingStore';
+import { runOne } from '../../test/fixtures';
 import type { LayoutMode } from '../../types';
 import { AppShell } from './AppShell';
 import { Pane, Panes } from './Panes';
@@ -107,6 +108,13 @@ describe('redirects in AppShell', () => {
   });
 
   it('sends /train/run to /train until a run was started', async () => {
+    renderApp({ route: '/train/run', mode: 'phone' });
+    await waitFor(() => expect(document.title).toContain('Train'));
+    expect(screen.getByRole('heading', { level: 1, name: 'Train' })).toBeInTheDocument();
+  });
+
+  it('sends /train/run to /train after "Back to settings", even with an old run in memory', async () => {
+    act(() => useTrainingStore.setState({ phase: 'idle', jobSettings: runOne.settings }));
     renderApp({ route: '/train/run', mode: 'phone' });
     await waitFor(() => expect(document.title).toContain('Train'));
     expect(screen.getByRole('heading', { level: 1, name: 'Train' })).toBeInTheDocument();

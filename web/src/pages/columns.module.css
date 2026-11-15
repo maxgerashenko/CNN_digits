@@ -21,9 +21,3 @@
   flex: 1 1 0;
   min-height: 0;
 }
-
-.chartsColumn {
-  width: 100%;
-  max-width: var(--size-column-max);
-  margin: 0 auto;
-}

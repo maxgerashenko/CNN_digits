@@ -8,6 +8,8 @@ export interface Reading {
   model: LoadedModel | null;
   /** Loading, missing or failed, as the model store says. */
   modelStatus: 'idle' | 'loading' | 'ready' | 'missing' | 'error';
+  /** The model store's message when loading failed, else null. */
+  modelError: string | null;
   status: InferenceStatus;
   result: Inference | null;
 }
@@ -17,7 +19,20 @@ export function useReading(): Reading {
   const slot = useModelStore(selectActiveSlot);
   const status = useInferenceStore((s) => s.status);
   const result = useInferenceStore((s) => s.result);
-  return { model: slot.status === 'ready' ? slot.model : null, modelStatus: slot.status, status, result };
+  return {
+    model: slot.status === 'ready' ? slot.model : null,
+    modelStatus: slot.status,
+    modelError: slot.status === 'error' ? (slot.error ?? null) : null,
+    status,
+    result,
+  };
+}
+
+/** The short title for a model that cannot read: loading, missing or failed. */
+export function noModelTitle(modelStatus: Reading['modelStatus']): string {
+  if (modelStatus === 'missing') return 'Model missing';
+  if (modelStatus === 'error') return 'Model not loaded';
+  return 'Loading';
 }
 
 /** The sentence for a model that cannot read: loading, missing or failed. */
