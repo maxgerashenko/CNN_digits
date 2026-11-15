@@ -32,8 +32,8 @@ describe('settings', () => {
   });
 
   it('accepts only what the server accepts', () => {
-    expect(isAllowed('epochs', 5)).toBe(true);
-    expect(isAllowed('epochs', 6)).toBe(false);
+    expect(isAllowed('epochs', 20)).toBe(true);
+    expect(isAllowed('epochs', 21)).toBe(false);
     expect(isAllowed('epochs', 2.5)).toBe(false);
     expect(isAllowed('filters', 12)).toBe(false);
     expect(isAllowed('learning_rate', 0.01)).toBe(true);
