@@ -40,6 +40,12 @@ def test_github_pages_is_allowed_by_default():
     assert response.headers["access-control-allow-origin"] == PAGES
 
 
+@pytest.mark.parametrize("origin", ["https://cnndigits.online", "https://www.cnndigits.online"])
+def test_custom_domain_is_allowed_by_default(origin):
+    response = make_client().get("/wake", headers={"Origin": origin})
+    assert response.headers["access-control-allow-origin"] == origin
+
+
 def test_other_sites_are_not_allowed():
     response = make_client().get("/wake", headers={"Origin": "https://evil.example"})
     assert "access-control-allow-origin" not in response.headers
@@ -101,9 +107,9 @@ def test_allowed_origins_can_be_changed(monkeypatch):
     assert "access-control-allow-origin" not in response.headers
 
 
-def test_empty_setting_falls_back_to_github_pages(monkeypatch):
+def test_empty_setting_falls_back_to_defaults(monkeypatch):
     monkeypatch.setenv("ALLOWED_ORIGINS", " , ")
-    assert cors.allowed_origins() == [PAGES]
+    assert cors.allowed_origins() == list(cors.DEFAULT_ORIGINS)
 
 
 @pytest.mark.parametrize(

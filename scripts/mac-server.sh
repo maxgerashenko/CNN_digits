@@ -17,7 +17,8 @@
 # The container gets no folders of this Mac, runs as a normal user and
 # listens on this Mac only (127.0.0.1). Only the tunnel reaches it.
 #
-# The server answers pages from https://maxgerashenko.github.io and from this
+# The server answers pages from https://cnndigits.online (and www), from
+# https://maxgerashenko.github.io and from this
 # Mac (localhost). To let other pages call it, such as the dev app opened on a
 # tablet, list every allowed address before the command:
 #

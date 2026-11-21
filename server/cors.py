@@ -1,6 +1,7 @@
 """Let the GitHub Pages site call the training server (CORS).
 
-The page lives on https://maxgerashenko.github.io and the server lives on a
+The page lives on https://cnndigits.online (GitHub Pages with a custom
+domain; the old https://maxgerashenko.github.io address redirects there) and the server lives on a
 different address (the Hugging Face Space). Browsers block such cross-site
 requests unless the server says the page's address is allowed. This module
 adds that permission.
@@ -15,7 +16,9 @@ Use it in server/app.py, right after the app is created:
 Settings (environment variables, both optional):
 
     ALLOWED_ORIGINS   Comma-separated addresses that may call the server.
-                      Default: https://maxgerashenko.github.io
+                      Default: https://cnndigits.online,
+                               https://www.cnndigits.online,
+                               https://maxgerashenko.github.io
                       Example: https://maxgerashenko.github.io,https://example.com
     ALLOW_LOCALHOST   "1" (default) also allows pages opened from this computer
                       (http://localhost:<any port>), for testing. "0" turns it off.
@@ -31,7 +34,11 @@ import os
 
 from starlette.middleware.cors import CORSMiddleware
 
-DEFAULT_ORIGINS = ("https://maxgerashenko.github.io",)
+DEFAULT_ORIGINS = (
+    "https://cnndigits.online",
+    "https://www.cnndigits.online",
+    "https://maxgerashenko.github.io",
+)
 
 # Pages served from the developer's own computer, on any port.
 LOCALHOST_REGEX = r"http://(localhost|127\.0\.0\.1)(:\d+)?"
