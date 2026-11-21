@@ -1,13 +1,18 @@
 #!/bin/sh
 # Runs the training server on this Mac and makes it reachable from the web app.
 #
+#   scripts/mac-server.sh up
 #   scripts/mac-server.sh start https://your-name.ngrok-free.dev
 #   scripts/mac-server.sh status
 #   scripts/mac-server.sh stop
 #
-# start: builds the server image from server/Dockerfile, runs it in a Docker
-#        container and opens an ngrok tunnel to it. Leave the terminal open;
-#        Ctrl+C closes the tunnel and stops the server.
+# up:    builds the server image from server/Dockerfile and runs it in a Docker
+#        container that Docker starts again on its own (after a restart of
+#        Docker or the Mac). Use it with the Cloudflare tunnel, which runs as
+#        its own service (see "Fixed address with a Cloudflare tunnel" in the
+#        README). The terminal can be closed.
+# start: the same container, but with an ngrok tunnel instead. Leave the
+#        terminal open; Ctrl+C closes the tunnel and stops the server.
 #
 # The container gets no folders of this Mac, runs as a normal user and
 # listens on this Mac only (127.0.0.1). Only the tunnel reaches it.
@@ -42,22 +47,32 @@ stop_server() {
   docker rm -f "$NAME" >/dev/null 2>&1 || true
 }
 
+# run_server <restart policy>
+run_server() {
+  docker build -q -t "$NAME" "$ROOT/server" >/dev/null
+  stop_server
+  docker run -d --name "$NAME" --restart "$1" \
+    -p "127.0.0.1:$PORT:$PORT" \
+    --cap-drop ALL --security-opt no-new-privileges \
+    --memory "${MEMORY_MB}m" --cpus 12 --pids-limit 1024 \
+    -e "TRAIN_WORKERS=$WORKERS" -e "TRAIN_WORKERS_WARM=$WARM" \
+    ${ALLOWED_ORIGINS:+-e "ALLOWED_ORIGINS=$ALLOWED_ORIGINS"} \
+    "$NAME" >/dev/null
+}
+
 case "${1:-}" in
+  up)
+    run_server unless-stopped
+    echo "Training server: http://127.0.0.1:$PORT, $WARM to $WORKERS runs at a time"
+    echo "It keeps running after this terminal closes. Stop it with: scripts/mac-server.sh stop"
+    ;;
   start)
     URL=${2:-}
     if [ -z "$URL" ]; then
       echo "Give the tunnel address: scripts/mac-server.sh start https://your-name.ngrok-free.dev" >&2
       exit 1
     fi
-    docker build -q -t "$NAME" "$ROOT/server" >/dev/null
-    stop_server
-    docker run -d --name "$NAME" \
-      -p "127.0.0.1:$PORT:$PORT" \
-      --cap-drop ALL --security-opt no-new-privileges \
-      --memory "${MEMORY_MB}m" --cpus 12 --pids-limit 1024 \
-      -e "TRAIN_WORKERS=$WORKERS" -e "TRAIN_WORKERS_WARM=$WARM" \
-      ${ALLOWED_ORIGINS:+-e "ALLOWED_ORIGINS=$ALLOWED_ORIGINS"} \
-      "$NAME" >/dev/null
+    run_server no
     trap stop_server EXIT INT TERM
     echo "Training server: http://127.0.0.1:$PORT  (public: $URL), $WARM to $WORKERS runs at a time"
     echo "Press Ctrl+C to stop."
@@ -74,7 +89,7 @@ case "${1:-}" in
     echo "Stopped."
     ;;
   *)
-    echo "Usage: scripts/mac-server.sh start <tunnel address> | status | stop" >&2
+    echo "Usage: scripts/mac-server.sh up | start <ngrok address> | status | stop" >&2
     exit 1
     ;;
 esac

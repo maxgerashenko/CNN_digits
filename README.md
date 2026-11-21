@@ -69,7 +69,7 @@ What you see:
 
 ## Run the training server on a Mac
 
-Training needs a server. The published site uses one that runs on a Mac, in a Docker container, behind an ngrok tunnel. Training works only while it runs.
+Training needs a server. The published site uses one that runs on a Mac, in a Docker container, behind a Cloudflare tunnel (below). `start` runs it behind an ngrok tunnel instead. Training works only while it runs.
 
 ```
 scripts/mac-server.sh start https://your-name.ngrok-free.dev   # leave the terminal open; Ctrl+C stops it
@@ -83,6 +83,33 @@ scripts/mac-server.sh stop
 - Anyone who knows the address can start training runs, so run the server only when you need it.
 - Two runs can always train at the same time. When more people queue, a third worker starts, and it closes after two idle minutes. More runs than that wait in line. Change the numbers with `WARM` (always ready) and `WORKERS` (most at a time, 1 to 8): `WARM=1 WORKERS=4 scripts/mac-server.sh start ...`. On other hosts the server reads `TRAIN_WORKERS_WARM` and `TRAIN_WORKERS` (default 1 for both).
 - The free ngrok plan shows browsers a warning page. The app sends the header `ngrok-skip-browser-warning` with each request to pass it (`web/src/api/serverFetch.ts`).
+
+### Fixed address with a Cloudflare tunnel
+
+The published site uses `https://train.cnndigits.online`. A free Cloudflare named tunnel sends it to the server on the Mac. The tunnel runs as a launchd service, so it starts again after a restart, and the address never changes.
+
+Start the server once; Docker starts it again on its own afterwards:
+
+```
+scripts/mac-server.sh up
+scripts/mac-server.sh status
+curl https://train.cnndigits.online/wake   # {"status":"ok",...}
+```
+
+Docker Desktop must open at login (Settings > General), and the Mac must stay awake.
+
+How the tunnel was set up (once, on the Mac; the domain is on Cloudflare):
+
+```
+brew install cloudflared
+cloudflared tunnel login                     # pick cnndigits.online in the browser
+cloudflared tunnel create cnn-digits-trainer
+cloudflared tunnel route dns cnn-digits-trainer train.cnndigits.online
+```
+
+- `~/.cloudflared/cnn-digits.yml` sends `train.cnndigits.online` to `http://localhost:7860`. The tunnel's key file sits next to it; keep it secret.
+- `~/Library/LaunchAgents/local.cnn-digits-tunnel.plist` runs `cloudflared tunnel --config ~/.cloudflared/cnn-digits.yml run`. Log: `~/Library/Logs/cnn-digits-tunnel.log`.
+- Stop the tunnel: `launchctl bootout gui/$(id -u)/local.cnn-digits-tunnel`. Start it: `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/local.cnn-digits-tunnel.plist`.
 
 The same `server/Dockerfile` runs on a cloud host (a Hugging Face Docker Space, Google Cloud Run). To move there, deploy it and change `VITE_TRAINING_SERVER_URL`.
 
