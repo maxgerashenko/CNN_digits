@@ -31,12 +31,12 @@ export const SAVED_MODEL_FACTS = {
 } as const;
 
 /**
- * Google Analytics 4 measurement ID (looks like G-XXXXXXXXXX). Empty, or not
- * in that shape, means analytics is off: the Google script is never loaded.
- * Set it with VITE_GA_MEASUREMENT_ID (web/.env.local, or a repository
- * variable in the GitHub Pages workflow).
+ * Google Tag Manager container ID (looks like GTM-XXXXXXX). The Google
+ * Analytics tag lives inside this container, set up on tagmanager.google.com.
+ * VITE_GTM_ID overrides the default; set it to "off" to load nothing.
  */
-export const GA_MEASUREMENT_ID: string = (() => {
-  const id = String(import.meta.env.VITE_GA_MEASUREMENT_ID ?? '').trim();
-  return /^G-[A-Z0-9]+$/.test(id) ? id : '';
+export const GTM_ID: string = (() => {
+  const raw = import.meta.env.VITE_GTM_ID;
+  const id = String(raw === undefined || raw === '' ? 'GTM-5W55NZQZ' : raw).trim();
+  return /^GTM-[A-Z0-9]+$/.test(id) ? id : '';
 })();
