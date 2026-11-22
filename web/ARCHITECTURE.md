@@ -34,6 +34,7 @@ In a sandbox where `~/.npm` is not writable, add `npm_config_cache="$TMPDIR/npm-
 Two values change between places the app runs. Both live in `src/config.ts`; nothing else reads `import.meta.env`.
 
 - `TRAINING_SERVER_URL` from `VITE_TRAINING_SERVER_URL` (`web/.env.local`, or a repository variable in the Pages workflow). Empty until the Space exists. When empty, training is switched off and the app says so.
+- `GA_MEASUREMENT_ID` from `VITE_GA_MEASUREMENT_ID` (same places). Empty or not shaped like `G-…` means analytics is off. When set, `lib/analytics.ts` loads gtag.js once at start-up and `AppShell` sends a `page_view` for each hash address the visitor lands on.
 - `SAVED_MODEL_URL` = `<base>/model/model.json`. The files go in `web/public/model/` (`model.json` + `weights.bin`, written by `python server/export.py MODEL.keras web/public/model`). They are not in the repo yet. Until they are, the app shows a "saved model is not added yet" state. Never ship a fake model.
 
 ## 2. Folder layout

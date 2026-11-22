@@ -66,6 +66,7 @@ What you see:
   Then update `SAVED_MODEL_FACTS` in `web/src/config.ts` with the new model's test results.
 
 - **Train tab:** without a training server it says training is not set up. Copy `web/.env.example` to `web/.env.local` and set `VITE_TRAINING_SERVER_URL` to the server's address, without a slash at the end. For the published site the address comes from the repository variable `VITE_TRAINING_SERVER_URL`.
+- **Google Analytics:** off by default. Set `VITE_GA_MEASUREMENT_ID` (like `G-XXXXXXXXXX`) in `web/.env.local`, or as a repository variable for the published site, and the app loads Google Analytics 4 and counts a page view for each screen.
 
 ## Run the training server on a Mac
 

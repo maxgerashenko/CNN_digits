@@ -29,3 +29,14 @@ export const SAVED_MODEL_FACTS = {
   mistakes: 47,
   testImages: 10000,
 } as const;
+
+/**
+ * Google Analytics 4 measurement ID (looks like G-XXXXXXXXXX). Empty, or not
+ * in that shape, means analytics is off: the Google script is never loaded.
+ * Set it with VITE_GA_MEASUREMENT_ID (web/.env.local, or a repository
+ * variable in the GitHub Pages workflow).
+ */
+export const GA_MEASUREMENT_ID: string = (() => {
+  const id = String(import.meta.env.VITE_GA_MEASUREMENT_ID ?? '').trim();
+  return /^G-[A-Z0-9]+$/.test(id) ? id : '';
+})();

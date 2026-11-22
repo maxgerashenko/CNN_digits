@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 import { useLayoutMode } from '../../hooks/useLayoutMode';
+import { trackPageView } from '../../lib/analytics';
 import { cx } from '../../lib/cx';
 import { redirectFor, ROUTES, tabFor } from '../../routes';
 import { useTrainingStore } from '../../state/trainingStore';
@@ -29,6 +30,11 @@ export function AppShell() {
 
   // A screen that is already on the page in this layout has no address of its own.
   const target = redirectFor(pathname, mode) ?? (pathname === ROUTES.training && idle ? ROUTES.train : null);
+  // One page view per address the visitor actually lands on (not the ones redirected away).
+  useEffect(() => {
+    if (!target) trackPageView(pathname);
+  }, [pathname, target]);
+
   if (target) return <Navigate to={target} replace />;
 
   return (
