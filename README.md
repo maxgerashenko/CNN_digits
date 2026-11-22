@@ -66,6 +66,7 @@ What you see:
   Then update `SAVED_MODEL_FACTS` in `web/src/config.ts` with the new model's test results.
 
 - **Train tab:** without a training server it says training is not set up. Copy `web/.env.example` to `web/.env.local` and set `VITE_TRAINING_SERVER_URL` to the server's address, without a slash at the end. For the published site the address comes from the repository variable `VITE_TRAINING_SERVER_URL`.
+- **Google Analytics:** the app loads Google Tag Manager (container `GTM-5W55NZQZ`); the Google Analytics tag is set up inside that container on tagmanager.google.com. Each screen sends a `page_view` event to `dataLayer`. Set `VITE_GTM_ID` (in `web/.env.local`, or as a repository variable) to use another container, or to `off` to load nothing.
 
 ## Run the training server on a Mac
 

@@ -29,3 +29,14 @@ export const SAVED_MODEL_FACTS = {
   mistakes: 47,
   testImages: 10000,
 } as const;
+
+/**
+ * Google Tag Manager container ID (looks like GTM-XXXXXXX). The Google
+ * Analytics tag lives inside this container, set up on tagmanager.google.com.
+ * VITE_GTM_ID overrides the default; set it to "off" to load nothing.
+ */
+export const GTM_ID: string = (() => {
+  const raw = import.meta.env.VITE_GTM_ID;
+  const id = String(raw === undefined || raw === '' ? 'GTM-5W55NZQZ' : raw).trim();
+  return /^GTM-[A-Z0-9]+$/.test(id) ? id : '';
+})();

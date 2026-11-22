@@ -7,6 +7,7 @@ name: Test and deploy web app
 # publish, GitHub Pages must be switched on in the repository settings
 # (Settings > Pages > Source: GitHub Actions) and the repository variable
 # VITE_TRAINING_SERVER_URL (the address of the training server) must be set.
+# The optional variable VITE_GTM_ID changes the Google Tag Manager container.
 
 on:
   pull_request:
@@ -53,6 +54,9 @@ jobs:
           # Address of the training server (the Hugging Face Space). Set it as
           # a repository variable; empty means training is switched off.
           VITE_TRAINING_SERVER_URL: ${{ vars.VITE_TRAINING_SERVER_URL }}
+          # Google Tag Manager container ID (GTM-XXXXXXX). Optional repository
+          # variable; empty uses the app's default container, "off" loads none.
+          VITE_GTM_ID: ${{ vars.VITE_GTM_ID }}
       # The Pages artifact is made only for a manual run from main.
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
